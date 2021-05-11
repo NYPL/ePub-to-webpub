@@ -2,7 +2,7 @@ import { server } from './mocks/server';
 // Establish API mocking before all tests.
 beforeAll(() =>
   server.listen({
-    onUnhandledRequest: 'warn',
+    onUnhandledRequest: 'error',
   })
 );
 
