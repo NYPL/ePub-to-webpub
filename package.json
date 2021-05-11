@@ -35,16 +35,16 @@
     "singleQuote": true,
     "trailingComma": "es5"
   },
-  "name": "epub-webpub",
+  "name": "epub-to-webpub",
   "author": "kristojorg",
-  "module": "dist/epub-webpub.esm.js",
+  "module": "dist/epub-to-webpub.esm.js",
   "size-limit": [
     {
-      "path": "dist/epub-webpub.cjs.production.min.js",
+      "path": "dist/epub-to-webpub.cjs.production.min.js",
       "limit": "10 KB"
     },
     {
-      "path": "dist/epub-webpub.esm.js",
+      "path": "dist/epub-to-webpub.esm.js",
       "limit": "10 KB"
     }
   ],
