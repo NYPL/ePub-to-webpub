@@ -8,18 +8,11 @@ import { getOpfPath, parseContainer, parseOpf } from './deserialize';
  * - Deserialize them into custom classes
  * - Use them to construct the manifest
  */
-async function localExploded() {
-  // the entrypoint is a container.xml file. We can change this
-  // later to be just the folder itself if we want.
-  const containerXmlPath = path.resolve(
-    __dirname,
-    '../samples/moby-epub-exploded/META-INF/container.xml'
-  );
-  // next we need in-memory representations of the container, content.opf, toc.ncx, etc
+async function localExploded(containerXmlPath: string) {
+  // we need in-memory representations of the container, content.opf, toc.ncx, etc
   // we will need to load, parse, and deserialize each using the XML utility of r2-utils-js
   const containerXmlStr = fs.readFileSync(containerXmlPath, 'utf-8');
   const container = parseContainer(containerXmlStr);
-
   // get the opf path from the container
   const opfPath = getOpfPath(container);
   // get the opf file
@@ -27,10 +20,19 @@ async function localExploded() {
   // deserialize
   const opf = await parseOpf(opfStr);
 
+  // @TODO: the get and deserialize the TOC.ncx file too
+
   // encode into Webpub Manifest
   const manifest = constructManifest(opf);
 
   return manifest;
 }
 
-localExploded();
+// the entrypoint is a container.xml file. We can change this
+// later to be just the folder itself if we want.
+const containerXmlPath = path.resolve(
+  __dirname,
+  '../samples/moby-epub-exploded/META-INF/container.xml'
+);
+
+localExploded(containerXmlPath);
