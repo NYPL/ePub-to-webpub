@@ -2,7 +2,7 @@
  * Type definitions for a manifest
  */
 
-import { Metadata } from './metadata';
+import { Metadata } from './Metadata';
 import { ReadiumLink } from './ReadiumLink';
 
 export const ReadiumWebpubContext = 'http://readium.org/webpub/default.jsonld';

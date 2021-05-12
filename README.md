@@ -1,10 +1,29 @@
-# TSDX React User Guide
+# EPUB to Webpub
 
-Congrats! You just saved yourself hours of work by bootstrapping this project with TSDX. Let’s get you oriented with what’s here and how to use it.
+This repository is a converter between EPUBS and Webpubs. It is meant to be deployed as an endpoint which takes a URL to an exploded EPUB, and will return a Webpub Manifest.
 
-> This TSDX setup is meant for developing React component libraries (not apps!) that can be published to NPM. If you’re looking to build a React-based app, you should use `create-react-app`, `razzle`, `nextjs`, `gatsby`, or `react-static`.
+## Features
 
-> If you’re new to TypeScript and React, checkout [this handy cheatsheet](https://github.com/sw-yx/react-typescript-cheatsheet/)
+- Exploded EPUB Support
+- AxisNow Encrypted EPUB Support (if you pass a license file for decryption)
+- Local EPUB Support (instead of using remote files)
+
+### Possible Future Features
+
+- CLI for local conversion
+- Packaged EPUB Support
+
+# Architecture
+
+The basic process for this task is the following:
+
+1. Start with an entrypoint, we will use the `container.xml` file.
+1. Extract the location of the `content.opf` file from the `container.xml`.
+1. Deserialize the `content.opf` file into a `OPF` class, using the XML utilities defined in `r2-utils-js` and the `OPF` class definition from `r2-shared-js`. 
+1. Deserialize the `toc.ncx` file, decrypting it if necessary.
+1. Extract metadata and contents from the `OPF` and `TOC` structures to construct a Webpub Manifest, keeping in mind edge cases and different versions of EPUB documents.
+1. Return the constructed Webpub Manifest.
+
 
 ## Commands
 

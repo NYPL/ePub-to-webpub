@@ -1,20 +1,13 @@
-/**
- * This is a working file.
- *
- * Features needed:
- *  - Local, packed ePub
- *  - Local, unpacked ePub
- *  - Remote, packed ePub
- *  - Remote, unpacked ePub
- *  - AxisNow Encrypted ePub
- */
 import fs from 'fs';
 import path from 'path';
-import { DOMParser } from 'xmldom';
-import { Container } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/container';
-import { XML } from 'r2-utils-js/dist/es8-es2017/src/_utils/xml-js-mapper';
-import { getOpfPath, decodeContainer, decodeOpf } from './decode';
+import { constructManifest } from './construct-manifest';
+import { getOpfPath, parseContainer, parseOpf } from './deserialize';
 
+/**
+ * - Source the necessary files
+ * - Deserialize them into custom classes
+ * - Use them to construct the manifest
+ */
 async function localExploded() {
   // the entrypoint is a container.xml file. We can change this
   // later to be just the folder itself if we want.
@@ -25,19 +18,19 @@ async function localExploded() {
   // next we need in-memory representations of the container, content.opf, toc.ncx, etc
   // we will need to load, parse, and deserialize each using the XML utility of r2-utils-js
   const containerXmlStr = fs.readFileSync(containerXmlPath, 'utf-8');
-  const container = decodeContainer(containerXmlStr);
+  const container = parseContainer(containerXmlStr);
 
   // get the opf path from the container
   const opfPath = getOpfPath(container);
   // get the opf file
   const opfStr = fs.readFileSync(opfPath, 'utf-8');
-  // decode the opf
-  const opf = decodeOpf(opfStr);
+  // deserialize
+  const opf = await parseOpf(opfStr);
 
   // encode into Webpub Manifest
-  const manifest = encodeManifest(opf);
-}
+  const manifest = constructManifest(opf);
 
-async function remoteExploded() {}
+  return manifest;
+}
 
 localExploded();
