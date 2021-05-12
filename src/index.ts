@@ -1,75 +1,43 @@
 /**
- * This file will convert the AxisNow encrypted ePub in
- * ../axisnow to a webpub manifest pointing to the same
- * encrypted resources.
- */
-
-/**
+ * This is a working file.
+ *
  * Features needed:
  *  - Local, packed ePub
  *  - Local, unpacked ePub
  *  - Remote, packed ePub
  *  - Remote, unpacked ePub
- *  - Encrypted ePub
- */
-
-/**
- *
- * Normal Process
- *  - Use fulfillment link to get url pieces
- *  - Use a secret url template to fetch a license file
- *  - Use another secret url template to get the container.xml file
- *  - Convert that to webpub.
- *
- * - Fetch the fulfillment link, giving you the keys you need to get the license file
- * - Get the keys for the license file.
- * - Source the content.opf file
- * - Either build a publication or just directly build a webpub manifest
- */
-
-/**
- * This file will be a proof of concept, converting /samples/axisnow to a webpub.
- * This example will run on node, but we will need to make a browser version ultimately.
+ *  - AxisNow Encrypted ePub
  */
 import fs from 'fs';
 import path from 'path';
-// import convertToWebpub from './convert';
-import convertWithR2 from './convertWithR2';
+import { DOMParser } from 'xmldom';
+import { Container } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/container';
+import { XML } from 'r2-utils-js/dist/es8-es2017/src/_utils/xml-js-mapper';
+import { getOpfPath, decodeContainer, decodeOpf } from './decode';
 
-// the json you get when you fetch the fulfillment link
-// const fulfillmentInfo = {
-//   book_vault_uuid: 'F58373FB-6574-45E6-B50E-6D73523AFD01',
-//   isbn: '9781467784870',
-// };
-
-// const CONTAINER_URL_TEMPLATE =
-//   'https://node.axisnow.com/content/stream/{isbn}/META-INF/container.xml';
-// const CONTENT_OPF_TEMPLATE =
-//   'https://node.axisnow.com/content/stream/{isbn}/OEBPS/content.opf';
-
-// const containerUrl = CONTAINER_URL_TEMPLATE.replace(
-//   '{isbn}',
-//   `${fulfillmentInfo.isbn}`
-// );
-// const fullContentOpfUrl = CONTENT_OPF_TEMPLATE.replace(
-//   '{isbn}',
-//   `${fulfillmentInfo.isbn}`
-// );
-
-// console.log(`Container Url: ${containerUrl}`);
-// console.log(`Content.opf url: ${fullContentOpfUrl}`);
-
-const contentOpfSampleUrl = path.resolve(
-  __dirname,
-  '../samples/axisnow/content.opf'
-);
-const opfSample = fs.readFileSync(contentOpfSampleUrl, 'utf8');
-
-const epubPath = path.resolve(__dirname, '../samples/moby-epub-exploded');
-
-convertWithR2(epubPath).then(manifest => {
-  fs.writeFileSync(
-    path.resolve(__dirname, '../outputs/exploded-moby-manifest.json'),
-    JSON.stringify(manifest)
+async function localExploded() {
+  // the entrypoint is a container.xml file. We can change this
+  // later to be just the folder itself if we want.
+  const containerXmlPath = path.resolve(
+    __dirname,
+    '../samples/moby-epub-exploded/META-INF/container.xml'
   );
-});
+  // next we need in-memory representations of the container, content.opf, toc.ncx, etc
+  // we will need to load, parse, and deserialize each using the XML utility of r2-utils-js
+  const containerXmlStr = fs.readFileSync(containerXmlPath, 'utf-8');
+  const container = decodeContainer(containerXmlStr);
+
+  // get the opf path from the container
+  const opfPath = getOpfPath(container);
+  // get the opf file
+  const opfStr = fs.readFileSync(opfPath, 'utf-8');
+  // decode the opf
+  const opf = decodeOpf(opfStr);
+
+  // encode into Webpub Manifest
+  const manifest = encodeManifest(opf);
+}
+
+async function remoteExploded() {}
+
+localExploded();

@@ -2,9 +2,14 @@ import { Metadata } from './types/Metadata';
 import { ReadiumLink } from './types/ReadiumLink';
 import { WebpubManifest } from './types/WebpubManifest';
 import { parseStringPromise } from 'xml2js';
+import { XML } from '@r2-utils-js/_utils/xml-js-mapper';
 /**
- * This is a decoding problem. We take in a set of files, and parse, then decode into a Publication.
- * type Parser<Pub> = (Dir) -> Pub
+ * This function takes in the exploded resources, parses the XML
+ * into a JS class, and then decodes the XML into a webpub manifest
+ *
+ * Edge Cases:
+ *  - Empty EPUB
+ *  - Not all resources loaded?
  */
 export default async function convertToWebpub(
   opf: string
