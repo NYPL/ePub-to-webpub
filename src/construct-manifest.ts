@@ -1,27 +1,17 @@
 import { OPF } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf';
 import { DCMetadata } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-dc-metadata';
+import { Metafield } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-metafield';
 import { READIUM_CONTEXT } from './constants';
+import { Contributors } from './types/Metadata';
 import { WebpubManifest } from './types/WebpubManifest';
 
 export async function constructManifest(opf: OPF): Promise<WebpubManifest> {
   /**
    * @TODO
-   * language
-   * title
-   * identifier
-   * otherMetadata
-   * publicationDirection
-   * contributorMeta
    * spine
    * resources
-   * rendition
-   * cover rel
-   * encryption
    * toc (using toc.ncx)
    * adobe page map to page list
-   * calibre serie info
-   * subject
-   * publication date
    */
   return {
     '@context': READIUM_CONTEXT,
@@ -34,33 +24,110 @@ export async function constructManifest(opf: OPF): Promise<WebpubManifest> {
 }
 
 /**
- * Extracts an item from either opf.Metatada.DCMetadata
+ * Extracts a named metadata property from either opf.Metatada.DCMetadata
  * or opf.Metadata, if the prior doesn't exist. Returns undefined
- * in case of failure
+ * in case of failure. This is to support EPUB 2.0, which allows
+ * metadata to be nested within dc:metadata:
+ * http://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2
  */
 function extractMetadataMember<T extends keyof DCMetadata>(opf: OPF, key: T) {
-  return opf.Metadata?.DCMetadata?.[key]?.length
-    ? opf.Metadata.DCMetadata[key]
-    : opf.Metadata?.[key]?.length
-    ? opf.Metadata[key]
-    : undefined;
+  return opf.Metadata?.DCMetadata?.[key] ?? opf.Metadata[key];
 }
 
 /**
+ * Extracts meta fields that are found in the XMetadata or Meta arrays
+ * within the Metadata object. This is necessary because EPUB allows metadata
+ * to be nested under either tag.
+ */
+function extractMetaField(opf: OPF, filter: (meta: Metafield) => boolean) {
+  const xMetaFields = opf.Metadata.XMetadata.Meta.filter(filter);
+  const metaFields = opf.Metadata.Meta.filter(filter);
+
+  return [...xMetaFields, ...metaFields];
+}
+
+/**
+ * The main function to get the metadata out of the OPF file.
+ *
  * For the purposes of this project, the metadata is not _super_ important since
  * these are not being distributed as webpubs, we just need enough info for our
  * reader to display the book correctly.
+ *
+ * Missing from metadata:
+ * - Language Map support for language-based fields
+ * - Subtitle extraction
+ * - Publication Direction
+ * - ...less important stuff defined in the Metadata type
  */
-function extractMetadata(opf: OPF) {
+function extractMetadata(opf: OPF): WebpubManifest['metadata'] {
   const language = extractMetadataMember(opf, 'Language');
-  const title = extractMetadataMember(opf, 'Title');
+  const title = extractTitle(opf);
+  const contributors = extractContributors(opf);
+
+  return {
+    title,
+    language,
+    ...contributors,
+  };
 }
 
 /**
- * Uses readium recommendations to extract a title. See:
- * https://github.com/readium/architecture/blob/master/streamer/parser/metadata.md#title
+ * Instead of extracting a map of titles based on language, we will just use
+ * the first title we find. This can be extended later to add a
+ * map of languages and titles.
  */
-function extractTitle(opf: OPF) {}
+function extractTitle(opf: OPF) {
+  const titleMeta = extractMetadataMember(opf, 'Title');
+  return titleMeta?.[0].Data ?? 'Uknown Title';
+}
+
+/**
+ * We will extract a simple list of string contributor names
+ * for each contributor role.
+ */
+function extractContributors(opf: OPF): Contributors {
+  const contributorFields = extractMetaField(
+    opf,
+    (meta: Metafield) =>
+      meta.Property === 'dcterms:creator' ||
+      meta.Property === 'dcterms:contributor'
+  );
+
+  // Map from EPUB role codes to Webpub Roles
+  const roleMap: Record<string, string> = {
+    aut: 'author',
+    trl: 'translator',
+    art: 'artist',
+    edt: 'editor',
+    ill: 'illustrator',
+    ltr: 'letterer',
+    pen: 'penciler',
+    clr: 'colorist',
+    ink: 'inker',
+    nrt: 'narrator',
+    pbl: 'publisher',
+  };
+
+  const contributors = contributorFields.reduce<Contributors>(
+    (all, contributor) => {
+      const name = contributor.Data;
+      // get the role, which is a sibling xml node
+      const epubRole =
+        extractMetaField(
+          opf,
+          field => field.Property === 'role' && field.ID === contributor.ID
+        )?.[0].Data ?? 'contributor';
+      const webpubRole = roleMap[epubRole] ?? 'contributor';
+      return {
+        ...all,
+        [webpubRole]: name,
+      };
+    },
+    {}
+  );
+
+  return contributors;
+}
 
 function extractLinks(opf: OPF) {}
 

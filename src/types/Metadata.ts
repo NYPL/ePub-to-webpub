@@ -3,7 +3,7 @@ import { Contributor } from './Contributor';
 import { LanguageMap } from './LanguageMap';
 import { Subject } from './Subject';
 
-export interface Metadata {
+export interface Metadata extends Contributors {
   identifier?: string;
   '@type'?: string;
   conformsTo?: ConformsTo;
@@ -18,6 +18,20 @@ export interface Metadata {
    */
   language?: string | string[];
   sortAs?: LanguageMap;
+  subject?: Subject;
+  readingProgression?: 'rtl' | 'ltr' | 'ttb' | 'btt' | 'auto';
+  description?: string;
+  duration?: number;
+  numberOfPages?: number;
+  belongsTo?: {
+    collection?: Contributor;
+    series?: Contributor;
+    [k: string]: unknown;
+  };
+  [k: string]: unknown;
+}
+
+export interface Contributors {
   author?: Contributor;
   translator?: Contributor;
   editor?: Contributor;
@@ -31,15 +45,4 @@ export interface Metadata {
   contributor?: Contributor;
   publisher?: Contributor;
   imprint?: Contributor;
-  subject?: Subject;
-  readingProgression?: 'rtl' | 'ltr' | 'ttb' | 'btt' | 'auto';
-  description?: string;
-  duration?: number;
-  numberOfPages?: number;
-  belongsTo?: {
-    collection?: Contributor;
-    series?: Contributor;
-    [k: string]: unknown;
-  };
-  [k: string]: unknown;
 }
