@@ -3,6 +3,7 @@ import { DCMetadata } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-dc-
 import { Metafield } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-metafield';
 import { READIUM_CONTEXT } from './constants';
 import { Contributors } from './types/Metadata';
+import { ReadiumLink } from './types/ReadiumLink';
 import { WebpubManifest } from './types/WebpubManifest';
 
 export async function constructManifest(opf: OPF): Promise<WebpubManifest> {
@@ -133,6 +134,24 @@ function extractLinks(opf: OPF) {}
 
 function extractReadingOrder(opf: OPF) {}
 
-function extractResources(opf: OPF) {}
+/**
+ * This is a very basic implementation that extracts resources from the OPF
+ * manifest. The links are only given href and type for now.
+ */
+function extractResources(opf: OPF): WebpubManifest['resources'] {
+  const resources: ReadiumLink[] = opf.Manifest.map(item => {
+    const decodedHref = item.HrefDecoded;
+    if (!decodedHref) {
+      throw new Error(`OPF Link missing HrefDecoded`);
+    }
+    const mimeType = item.MediaType;
+    return {
+      href: decodedHref,
+      type: mimeType,
+    };
+  });
 
-function extractToc(opf: OPF) {}
+  return resources;
+}
+
+function extractToc(opf: OPF, tocStr: string) {}
