@@ -65,3 +65,18 @@ export function getOpfPath(container: Container): string {
   }
   return rootfilePath;
 }
+
+/**
+ * As best I can tell, the TOC.ncx file is always referenced with
+ * an <item> in the <manifest> with id === 'ncx
+ */
+export function getTocHref(opf: OPF) {
+  return opf.Manifest.find(item => item.ID === 'ncx')?.HrefDecoded;
+}
+
+/**
+ * Parses an XML string into a TOC Document
+ */
+export function parseToc(tocStr: string | undefined) {
+  return tocStr ? new DOMParser().parseFromString(tocStr) : undefined;
+}

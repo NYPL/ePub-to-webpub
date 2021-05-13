@@ -6,7 +6,10 @@ import { Contributors } from './types/Metadata';
 import { ReadiumLink } from './types/ReadiumLink';
 import { WebpubManifest } from './types/WebpubManifest';
 
-export async function constructManifest(opf: OPF): Promise<WebpubManifest> {
+export async function constructManifest(
+  opf: OPF,
+  toc?: Document
+): Promise<WebpubManifest> {
   /**
    * @TODO
    * spine
@@ -20,7 +23,7 @@ export async function constructManifest(opf: OPF): Promise<WebpubManifest> {
     links: extractLinks(opf),
     readingOrder: extractReadingOrder(opf),
     resources: extractResources(opf),
-    toc: extractToc(opf),
+    toc: extractToc(opf, toc),
   };
 }
 
@@ -148,10 +151,21 @@ function extractResources(opf: OPF): WebpubManifest['resources'] {
     return {
       href: decodedHref,
       type: mimeType,
+      id: item.ID,
     };
   });
 
   return resources;
 }
 
-function extractToc(opf: OPF, tocStr: string) {}
+/**
+ * Only EPUB 2 uses the toc.ncx file. EPUB 3 uses
+ * the spine insted.
+ *
+ * QUESTION: What is the role of <spine> when there exists
+ * a toc.ncx file?
+ */
+function extractToc(
+  opf: OPF,
+  tocDoc: Document | undefined
+): WebpubManifest['toc'] {}
