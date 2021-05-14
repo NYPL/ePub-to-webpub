@@ -6,6 +6,20 @@ import { Contributors } from './types/Metadata';
 import { ReadiumLink } from './types/ReadiumLink';
 import { WebpubManifest } from './types/WebpubManifest';
 
+/**
+ * References:
+ * - EPUB 2 Spec: http://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4
+ * - EPUB 3 Spec:
+ *
+ * TO DO:
+ * - support NavMap, Page List and NavList from EPUB 2 Spec:
+ *    http://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1
+ * - support more metadata
+ */
+
+/**
+ * Main entrypoint to constructing a manifest from an opf and NCX
+ */
 export async function constructManifest(
   opf: OPF,
   toc?: Document
@@ -135,6 +149,11 @@ function extractContributors(opf: OPF): Contributors {
 
 function extractLinks(opf: OPF) {}
 
+/**
+ * This seems it comes from the Spine:
+ * http://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4
+ *
+ */
 function extractReadingOrder(opf: OPF) {}
 
 /**
@@ -163,9 +182,64 @@ function extractResources(opf: OPF): WebpubManifest['resources'] {
  * the spine insted.
  *
  * QUESTION: What is the role of <spine> when there exists
- * a toc.ncx file?
+ * a toc.ncx file? It appears the spine (in EPUB 2 at least) is for
+ * reading order.
  */
 function extractToc(
   opf: OPF,
   tocDoc: Document | undefined
-): WebpubManifest['toc'] {}
+): WebpubManifest['toc'] {
+  // detect version
+  return tocDoc ? extractTocFromNcx(tocDoc) : undefined;
+}
+
+/**
+ * NCX files are used by EPUB 2 books to define the
+ * TOC. The spec is here:
+ * http://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1
+ */
+export function extractTocFromNcx(ncx: Document): ReadiumLink[] {
+  const navMap = ncx.getElementsByTagName('navMap')[0];
+
+  /**
+   * Reduce over the children of navMap, which are navPoints
+   */
+  // const toc = reduceDomTree<ReadiumLink[]>(
+  //   (prev, current) => {
+
+  //   },
+  //   navMap.firstChild,
+  //   []
+  // );
+
+  return toc;
+}
+
+function reduceNavPoint(acc: ReadiumLink[], point: Node): ReadiumLink {
+  const children = Array.from(point.childNodes);
+  const title = children.find(child => child.nodeName === 'navLabel')
+    ?.firstChild?.nodeValue;
+  const href = children.find(child => child.nodeName === 'content')?.firstChild
+    ?.textContent;
+
+  return {
+    href: '',
+    title: '',
+    children,
+  };
+}
+
+function reduceDomTree<T>(
+  reducer: (prev: T, current: ChildNode) => T,
+  node: ChildNode,
+  init: T
+): T {
+  // calculate the value with this node
+  const acc = reducer(init, node);
+  // if there are no children, return that
+  if (!node.hasChildNodes) return acc;
+  // if there are children, we need to reduce each one
+  return Array.from(node.childNodes).reduce<T>((prev, childNode) => {
+    return reduceDomTree(reducer, childNode, prev);
+  }, acc);
+}

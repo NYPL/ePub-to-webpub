@@ -3,10 +3,10 @@ import path from 'path';
 import { constructManifest } from './construct-manifest';
 import {
   getOpfPath,
-  getTocHref,
+  getNcxHref,
   parseContainer,
   parseOpf,
-  parseToc,
+  parseNcx,
 } from './deserialize';
 
 /**
@@ -27,9 +27,9 @@ async function localExploded(containerXmlPath: string) {
   const opf = await parseOpf(opfStr);
 
   // the TOC href lives in the opf.Manifest
-  const tocPath = getTocHref(opf);
+  const tocPath = getNcxHref(opf);
   const tocStr = tocPath ? fs.readFileSync(tocPath, 'utf-8') : undefined;
-  const tocDoc = parseToc(tocStr);
+  const tocDoc = parseNcx(tocStr);
 
   // encode into Webpub Manifest
   const manifest = constructManifest(opf, tocDoc);

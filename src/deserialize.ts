@@ -2,6 +2,7 @@ import { OPF } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf';
 import { DOMParser } from 'xmldom';
 import { XML } from 'r2-utils-js/dist/es8-es2017/src/_utils/xml-js-mapper';
 import { Container } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/container';
+import { NCX_MEDIA_TYPE } from './constants';
 /**
  * This file is all about deserializing strings into in-memory
  * JS structures, usually custom classes from XML
@@ -70,13 +71,15 @@ export function getOpfPath(container: Container): string {
  * As best I can tell, the TOC.ncx file is always referenced with
  * an <item> in the <manifest> with id === 'ncx
  */
-export function getTocHref(opf: OPF) {
-  return opf.Manifest.find(item => item.ID === 'ncx')?.HrefDecoded;
+export function getNcxHref(opf: OPF) {
+  return opf.Manifest.find(
+    item => item.ID === 'ncx' && item.MediaType === NCX_MEDIA_TYPE
+  )?.HrefDecoded;
 }
 
 /**
- * Parses an XML string into a TOC Document
+ * Parses an NCX XML string into a TOC Document
  */
-export function parseToc(tocStr: string | undefined) {
-  return tocStr ? new DOMParser().parseFromString(tocStr) : undefined;
+export function parseNcx(ncxStr: string | undefined) {
+  return ncxStr ? new DOMParser().parseFromString(ncxStr) : undefined;
 }
