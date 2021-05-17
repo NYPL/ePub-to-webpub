@@ -5,6 +5,9 @@ import { READIUM_CONTEXT } from './constants';
 import { Contributors } from './types/Metadata';
 import { ReadiumLink } from './types/ReadiumLink';
 import { WebpubManifest } from './types/WebpubManifest';
+import xpath, { SelectedValue } from 'xpath';
+import { isValidElement } from 'react';
+import { DOMParser } from 'xmldom';
 
 /**
  * References:
@@ -129,7 +132,7 @@ function extractContributors(opf: OPF): Contributors {
   const contributors = contributorFields.reduce<Contributors>(
     (all, contributor) => {
       const name = contributor.Data;
-      // get the role, which is a sibling xml node
+      // get the role, which is a sibling xml node. The default is contributor
       const epubRole =
         extractMetaField(
           opf,
@@ -158,7 +161,7 @@ function extractReadingOrder(opf: OPF) {}
 
 /**
  * This is a very basic implementation that extracts resources from the OPF
- * manifest. The links are only given href and type for now.
+ * manifest. The links are only given href, type and ID for now.
  */
 function extractResources(opf: OPF): WebpubManifest['resources'] {
   const resources: ReadiumLink[] = opf.Manifest.map(item => {
@@ -193,53 +196,83 @@ function extractToc(
   return tocDoc ? extractTocFromNcx(tocDoc) : undefined;
 }
 
+const select = xpath.useNamespaces({
+  epub: 'http://www.idpf.org/2007/ops',
+  xhtml: 'http://www.w3.org/1999/xhtml',
+});
+
 /**
  * NCX files are used by EPUB 2 books to define the
  * TOC. The spec is here:
  * http://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1
  */
 export function extractTocFromNcx(ncx: Document): ReadiumLink[] {
-  const navMap = ncx.getElementsByTagName('navMap')[0];
+  // const navMap = ncx.getElementsByTagName('navMap')[0];
 
-  /**
-   * Reduce over the children of navMap, which are navPoints
-   */
-  // const toc = reduceDomTree<ReadiumLink[]>(
-  //   (prev, current) => {
+  const points = select('/navMap/navPoint', ncx);
 
-  //   },
-  //   navMap.firstChild,
-  //   []
-  // );
+  const toc = points.map(point => {
+    return navPointToLink(point.toString());
+  });
 
   return toc;
 }
 
-function reduceNavPoint(acc: ReadiumLink[], point: Node): ReadiumLink {
-  const children = Array.from(point.childNodes);
-  const title = children.find(child => child.nodeName === 'navLabel')
-    ?.firstChild?.nodeValue;
-  const href = children.find(child => child.nodeName === 'content')?.firstChild
-    ?.textContent;
-
-  return {
-    href: '',
-    title: '',
-    children,
-  };
+function selectAttr(query: string, node: Node): string | undefined {
+  const selectedVal = select(query, node, true);
+  if (typeof selectedVal === 'object' && 'value' in selectedVal) {
+    return selectedVal.value;
+  }
+  return undefined;
+}
+function selectText(query: string, node: Node): string | undefined {
+  const val = select(query, node, true);
+  if (typeof val === 'object' && 'nodeValue' in val) {
+    return val.nodeValue ?? undefined;
+  }
+  return undefined;
 }
 
-function reduceDomTree<T>(
-  reducer: (prev: T, current: ChildNode) => T,
-  node: ChildNode,
-  init: T
-): T {
-  // calculate the value with this node
-  const acc = reducer(init, node);
-  // if there are no children, return that
-  if (!node.hasChildNodes) return acc;
-  // if there are children, we need to reduce each one
-  return Array.from(node.childNodes).reduce<T>((prev, childNode) => {
-    return reduceDomTree(reducer, childNode, prev);
-  }, acc);
+/**
+ * Extracts a ReadiumLink from an NCX XML string. We have to pass the string
+ * and re-form the Document on every recursion otherwise this doesn't work.
+ */
+export function navPointToLink(xml: string): ReadiumLink {
+  // construct a Document from the xml string
+  const point = new DOMParser().parseFromString(xml);
+
+  // check if this is indeed a Node
+  if (
+    typeof point === 'string' ||
+    typeof point === 'boolean' ||
+    typeof point === 'string' ||
+    typeof point === 'number'
+  ) {
+    throw new Error('SelectedValue is not a valid Node.');
+  }
+  const title = selectText('navPoint/navLabel/text/text()', point);
+  const href = selectAttr('/navPoint/content/@src', point);
+  const childrenNodes = select('navPoint/navPoint', point).filter(
+    child => !!child
+  );
+  if (!href) {
+    throw new Error(
+      `Malformed navPoint. Point with title: "${title}" is missing href`
+    );
+  }
+  const link: ReadiumLink = {
+    title,
+    href,
+  };
+  if (childrenNodes.length > 0) {
+    const children = childrenNodes
+      .map(child => navPointToLink(child.toString()))
+      .filter(isLink);
+    link.children = children;
+  }
+  return link;
+}
+
+function isLink(val: ReadiumLink | undefined): val is ReadiumLink {
+  return !!val;
 }
