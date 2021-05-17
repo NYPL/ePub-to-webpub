@@ -5,8 +5,7 @@ import { READIUM_CONTEXT } from './constants';
 import { Contributors } from './types/Metadata';
 import { ReadiumLink } from './types/ReadiumLink';
 import { WebpubManifest } from './types/WebpubManifest';
-import xpath, { SelectedValue } from 'xpath';
-import { isValidElement } from 'react';
+import xpath from 'xpath';
 import { DOMParser } from 'xmldom';
 
 /**
@@ -15,6 +14,7 @@ import { DOMParser } from 'xmldom';
  * - EPUB 3 Spec:
  *
  * TO DO:
+ * - Support EPUB 3 Spine-based TOC
  * - support NavMap, Page List and NavList from EPUB 2 Spec:
  *    http://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1
  * - support more metadata
@@ -38,8 +38,7 @@ export async function constructManifest(
     '@context': READIUM_CONTEXT,
     metadata: extractMetadata(opf),
     links: extractLinks(opf),
-    readingOrder: extractReadingOrder(opf),
-    resources: extractResources(opf),
+    ...resourcesAndReadingOrder(opf),
     toc: extractToc(opf, toc),
   };
 }
@@ -150,21 +149,72 @@ function extractContributors(opf: OPF): Contributors {
   return contributors;
 }
 
-function extractLinks(opf: OPF) {}
+function extractLinks(opf: OPF) {
+  return undefined;
+}
+
+type LinkWithId = ReadiumLink & { id: string };
+
+type ReadingOrderAndResources = {
+  readingOrder: ReadiumLink[];
+  resources?: ReadiumLink[];
+};
+/**
+ * The readingOrder lists the resources of the publication in the reading order
+ * they should be read in. The resources object is for any _other_ resources needed,
+ * but not found in the readingOrder, such as css files.
+ */
+function resourcesAndReadingOrder(opf: OPF): ReadingOrderAndResources {
+  // get out every resources from the manifest
+  const allResources = extractResources(opf);
+  // keep a record of what IDs appear in the reading order so we can filter them
+  // from the resources later
+  const appearsInReadingOrder: Record<string, boolean> = {};
+  const readingOrder = opf.Spine.Items.reduce<ReadiumLink[]>((acc, item) => {
+    const link = allResources.find(link => link.id);
+    if (link) {
+      if (!item.Linear || item.Linear === 'yes') {
+        acc.push(link);
+      }
+    }
+    return acc;
+  }, []);
+  // filter allResources to only have ones not found in reading order
+  const resources = allResources.filter(
+    link => !appearsInReadingOrder[link.id]
+  );
+
+  return {
+    resources,
+    readingOrder,
+  };
+}
 
 /**
  * This seems it comes from the Spine:
- * http://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4
+ * http://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.
+ *
+ * We only add the items with `linear: 'yes'`, as any other items
+ * are not part of reading order, just a resource.
  *
  */
-function extractReadingOrder(opf: OPF) {}
+function extractReadingOrder(opf: OPF, resources: LinkWithId[]): ReadiumLink[] {
+  const readingOrder = opf.Spine.Items.reduce<ReadiumLink[]>((acc, item) => {
+    if (!item.Linear || item.Linear === 'yes') {
+      const link = resources.find(link => link.id);
+      if (link) acc.push(link);
+    }
+    return acc;
+  }, []);
+  return readingOrder;
+}
 
 /**
  * This is a very basic implementation that extracts resources from the OPF
  * manifest. The links are only given href, type and ID for now.
  */
-function extractResources(opf: OPF): WebpubManifest['resources'] {
-  const resources: ReadiumLink[] = opf.Manifest.map(item => {
+function extractResources(opf: OPF): LinkWithId[] {
+  const resources: LinkWithId[] = opf.Manifest.map(item => {
     const decodedHref = item.HrefDecoded;
     if (!decodedHref) {
       throw new Error(`OPF Link missing HrefDecoded`);
