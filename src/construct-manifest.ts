@@ -1,7 +1,7 @@
 import { OPF } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf';
 import { DCMetadata } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-dc-metadata';
 import { Metafield } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-metafield';
-import { READIUM_CONTEXT } from './constants';
+import { ReadiumWebpubContext, READIUM_CONTEXT } from './constants';
 import { Contributors } from './types/Metadata';
 import { ReadiumLink } from './types/ReadiumLink';
 import { WebpubManifest } from './types/WebpubManifest';
@@ -40,7 +40,7 @@ export async function constructManifest(
   const toc = extractToc(opf, ncx);
 
   return {
-    '@context': READIUM_CONTEXT,
+    '@context': ReadiumWebpubContext,
     metadata,
     links,
     ...resourcesObj,

@@ -1,11 +1,9 @@
 /**
  * Type definitions for a manifest
  */
-
+import { ReadiumWebpubContext } from '../constants';
 import { Metadata } from './Metadata';
 import { ReadiumLink } from './ReadiumLink';
-
-export const ReadiumWebpubContext = 'http://readium.org/webpub/default.jsonld';
 
 export interface WebpubManifest {
   '@context'?: typeof ReadiumWebpubContext;
