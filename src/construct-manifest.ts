@@ -25,7 +25,7 @@ import { DOMParser } from 'xmldom';
  */
 export async function constructManifest(
   opf: OPF,
-  toc?: Document
+  ncx?: Document
 ): Promise<WebpubManifest> {
   /**
    * @TODO
@@ -34,12 +34,17 @@ export async function constructManifest(
    * toc (using toc.ncx)
    * adobe page map to page list
    */
+  const metadata = extractMetadata(opf);
+  const links = extractLinks(opf);
+  const resourcesObj = resourcesAndReadingOrder(opf);
+  const toc = extractToc(opf, ncx);
+
   return {
     '@context': READIUM_CONTEXT,
-    metadata: extractMetadata(opf),
-    links: extractLinks(opf),
-    ...resourcesAndReadingOrder(opf),
-    toc: extractToc(opf, toc),
+    metadata,
+    links,
+    ...resourcesObj,
+    toc,
   };
 }
 
@@ -60,8 +65,12 @@ function extractMetadataMember<T extends keyof DCMetadata>(opf: OPF, key: T) {
  * to be nested under either tag.
  */
 function extractMetaField(opf: OPF, filter: (meta: Metafield) => boolean) {
-  const xMetaFields = opf.Metadata.XMetadata.Meta.filter(filter);
-  const metaFields = opf.Metadata.Meta.filter(filter);
+  /**
+   * These properties are not marked as optional, but that is a mistake, they
+   * are indeed optional and need to use optional chaining and nullish coalescing
+   */
+  const xMetaFields = opf.Metadata?.XMetadata?.Meta?.filter(filter) ?? [];
+  const metaFields = opf.Metadata?.Meta?.filter(filter) ?? [];
 
   return [...xMetaFields, ...metaFields];
 }
@@ -150,7 +159,7 @@ function extractContributors(opf: OPF): Contributors {
 }
 
 function extractLinks(opf: OPF) {
-  return undefined;
+  return [];
 }
 
 type LinkWithId = ReadiumLink & { id: string };

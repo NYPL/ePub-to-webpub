@@ -14,21 +14,25 @@ import {
  * - Deserialize them into custom classes
  * - Use them to construct the manifest
  */
-async function localExploded(containerXmlPath: string) {
+export async function localExploded(containerXmlPath: string) {
   // we need in-memory representations of the container, content.opf, toc.ncx, etc
   // we will need to load, parse, and deserialize each using the XML utility of r2-utils-js
   const containerXmlStr = fs.readFileSync(containerXmlPath, 'utf-8');
   const container = parseContainer(containerXmlStr);
   // get the opf path from the container
-  const opfPath = getOpfPath(container);
+  const folderPath = containerXmlPath.replace('META-INF/container.xml', '');
+  const opfPath = path.resolve(folderPath, getOpfPath(container));
   // get the opf file
   const opfStr = fs.readFileSync(opfPath, 'utf-8');
   // deserialize
   const opf = await parseOpf(opfStr);
 
   // the TOC href lives in the opf.Manifest
-  const tocPath = getNcxHref(opf);
-  const tocStr = tocPath ? fs.readFileSync(tocPath, 'utf-8') : undefined;
+  const ncxHref = getNcxHref(opf);
+  console.log(ncxHref);
+  const tocStr = ncxHref
+    ? fs.readFileSync(path.resolve(folderPath, 'OEBPS/', ncxHref), 'utf-8')
+    : undefined;
   const tocDoc = parseNcx(tocStr);
 
   // encode into Webpub Manifest
