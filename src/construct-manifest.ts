@@ -95,7 +95,7 @@ function extractMetadata(opf: OPF): WebpubManifest['metadata'] {
 
   return {
     title,
-    language,
+    language: language.length > 1 ? language : language[0],
     ...contributors,
   };
 }
@@ -145,7 +145,7 @@ function extractContributors(opf: OPF): Contributors {
         extractMetaField(
           opf,
           field => field.Property === 'role' && field.ID === contributor.ID
-        )?.[0].Data ?? 'contributor';
+        )?.[0]?.Data ?? 'contributor';
       const webpubRole = roleMap[epubRole] ?? 'contributor';
       return {
         ...all,
@@ -154,6 +154,16 @@ function extractContributors(opf: OPF): Contributors {
     },
     {}
   );
+
+  // the author get pre-extracted for some reason from the metafields
+  const creators = extractMetadataMember(opf, 'Creator');
+  if (creators.length > 0) {
+    if (creators.length > 1) {
+      contributors.author = creators.map(creator => creator.Data);
+    } else {
+      contributors.author = creators[0].Data;
+    }
+  }
 
   return contributors;
 }
