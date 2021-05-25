@@ -64,6 +64,7 @@
   },
   "dependencies": {
     "@types/xmldom": "^0.1.30",
+    "image-size": "^0.9.7",
     "node-fetch": "^2.6.1",
     "r2-shared-js": "^1.0.50",
     "r2-utils-js": "^1.0.24",

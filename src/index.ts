@@ -1,13 +1,6 @@
-import fs from 'fs';
 import path from 'path';
 import { constructManifest } from './construct-manifest';
-import {
-  getOpfPath,
-  getNcxHref,
-  parseContainer,
-  parseOpf,
-  parseNcx,
-} from './deserialize';
+import LocalExplodedEpub from './LocalEpub';
 
 /**
  * - Source the necessary files
@@ -15,28 +8,10 @@ import {
  * - Use them to construct the manifest
  */
 export async function localExploded(containerXmlPath: string) {
-  // we need in-memory representations of the container, content.opf, toc.ncx, etc
-  // we will need to load, parse, and deserialize each using the XML utility of r2-utils-js
-  const containerXmlStr = fs.readFileSync(containerXmlPath, 'utf-8');
-  const container = parseContainer(containerXmlStr);
-  // get the opf path from the container
-  const folderPath = containerXmlPath.replace('META-INF/container.xml', '');
-  const opfPath = path.resolve(folderPath, getOpfPath(container));
-  // get the opf file
-  const opfStr = fs.readFileSync(opfPath, 'utf-8');
-  // deserialize
-  const opf = await parseOpf(opfStr);
-
-  // the TOC href lives in the opf.Manifest
-  const ncxHref = getNcxHref(opf);
-  console.log(ncxHref);
-  const tocStr = ncxHref
-    ? fs.readFileSync(path.resolve(folderPath, 'OEBPS/', ncxHref), 'utf-8')
-    : undefined;
-  const tocDoc = parseNcx(tocStr);
+  const epub = await LocalExplodedEpub.build(containerXmlPath);
 
   // encode into Webpub Manifest
-  const manifest = constructManifest(opf, tocDoc);
+  const manifest = constructManifest(epub);
 
   return manifest;
 }

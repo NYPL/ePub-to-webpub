@@ -39,7 +39,7 @@ describe('EPUB 2', async () => {
     expect(manifest.readingOrder).toEqual(explodedMobyManifest.readingOrder);
   });
 
-  it('extracts resources', async () => {
+  it.only('extracts resources', async () => {
     const manifest = await getManifest();
     // resources
     expect(manifest.resources).toEqual(explodedMobyManifest.resources);

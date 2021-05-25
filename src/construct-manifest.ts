@@ -1,43 +1,46 @@
 import { OPF } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf';
 import { DCMetadata } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-dc-metadata';
 import { Metafield } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-metafield';
-import { ReadiumWebpubContext, READIUM_CONTEXT } from './constants';
+import { ReadiumWebpubContext } from './constants';
 import { Contributors } from './types/Metadata';
 import { ReadiumLink } from './types/ReadiumLink';
 import { WebpubManifest } from './types/WebpubManifest';
 import xpath from 'xpath';
 import { DOMParser } from 'xmldom';
+import sizeOf from 'image-size';
+import { Manifest } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-manifest';
+import { safelyGet } from './utils';
+import { getImageBuffer } from './get-files';
+import Epub from './Epub';
 
 /**
  * References:
- * - EPUB 2 Spec: http://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4
- * - EPUB 3 Spec:
+ * - EPUB 2 Spec: http://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm
+ * - EPUB 3 Spec: http://idpf.org/epub/30/spec/epub30-publications.html
  *
- * TO DO:
+ * @TODO :
  * - Support EPUB 3 Spine-based TOC
  * - support NavMap, Page List and NavList from EPUB 2 Spec:
  *    http://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1
  * - support more metadata
+ * - Link data needs to be added to the resources?
+ * - Add cover info. Search for the cover Meta, then find that manifes
+ *    by the id of the cover, then add the info from the manifest to the
+ *    link in resources.
+ * - Add media overlay?
+ * - adobe page map to page list
  */
 
 /**
  * Main entrypoint to constructing a manifest from an opf and NCX
  */
 export async function constructManifest(
-  opf: OPF,
-  ncx?: Document
+  epub: Epub
 ): Promise<WebpubManifest> {
-  /**
-   * @TODO
-   * spine
-   * resources
-   * toc (using toc.ncx)
-   * adobe page map to page list
-   */
-  const metadata = extractMetadata(opf);
-  const links = extractLinks(opf);
-  const resourcesObj = resourcesAndReadingOrder(opf);
-  const toc = extractToc(opf, ncx);
+  const metadata = extractMetadata(epub);
+  const links = extractLinks(epub);
+  const resourcesObj = await resourcesAndReadingOrder(epub);
+  const toc = extractToc(epub);
 
   return {
     '@context': ReadiumWebpubContext,
@@ -49,14 +52,14 @@ export async function constructManifest(
 }
 
 /**
- * Extracts a named metadata property from either opf.Metatada.DCMetadata
- * or opf.Metadata, if the prior doesn't exist. Returns undefined
+ * Extracts a named metadata property from either epub.opf.Metatada.DCMetadata
+ * or epub.opf.Metadata, if the prior doesn't exist. Returns undefined
  * in case of failure. This is to support EPUB 2.0, which allows
  * metadata to be nested within dc:metadata:
  * http://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2
  */
-function extractMetadataMember<T extends keyof DCMetadata>(opf: OPF, key: T) {
-  return opf.Metadata?.DCMetadata?.[key] ?? opf.Metadata[key];
+function extractMetadataMember<T extends keyof DCMetadata>(epub: Epub, key: T) {
+  return epub.opf.Metadata?.DCMetadata?.[key] ?? epub.opf.Metadata[key];
 }
 
 /**
@@ -64,13 +67,13 @@ function extractMetadataMember<T extends keyof DCMetadata>(opf: OPF, key: T) {
  * within the Metadata object. This is necessary because EPUB allows metadata
  * to be nested under either tag.
  */
-function extractMetaField(opf: OPF, filter: (meta: Metafield) => boolean) {
+function extractMetaField(epub: Epub, filter: (meta: Metafield) => boolean) {
   /**
    * These properties are not marked as optional, but that is a mistake, they
    * are indeed optional and need to use optional chaining and nullish coalescing
    */
-  const xMetaFields = opf.Metadata?.XMetadata?.Meta?.filter(filter) ?? [];
-  const metaFields = opf.Metadata?.Meta?.filter(filter) ?? [];
+  const xMetaFields = epub.opf.Metadata?.XMetadata?.Meta?.filter(filter) ?? [];
+  const metaFields = epub.opf.Metadata?.Meta?.filter(filter) ?? [];
 
   return [...xMetaFields, ...metaFields];
 }
@@ -88,10 +91,10 @@ function extractMetaField(opf: OPF, filter: (meta: Metafield) => boolean) {
  * - Publication Direction
  * - ...less important stuff defined in the Metadata type
  */
-function extractMetadata(opf: OPF): WebpubManifest['metadata'] {
-  const language = extractMetadataMember(opf, 'Language');
-  const title = extractTitle(opf);
-  const contributors = extractContributors(opf);
+function extractMetadata(epub: Epub): WebpubManifest['metadata'] {
+  const language = extractMetadataMember(epub, 'Language');
+  const title = extractTitle(epub);
+  const contributors = extractContributors(epub);
 
   return {
     title,
@@ -105,8 +108,8 @@ function extractMetadata(opf: OPF): WebpubManifest['metadata'] {
  * the first title we find. This can be extended later to add a
  * map of languages and titles.
  */
-function extractTitle(opf: OPF) {
-  const titleMeta = extractMetadataMember(opf, 'Title');
+function extractTitle(epub: Epub) {
+  const titleMeta = extractMetadataMember(epub, 'Title');
   return titleMeta?.[0].Data ?? 'Uknown Title';
 }
 
@@ -114,9 +117,9 @@ function extractTitle(opf: OPF) {
  * We will extract a simple list of string contributor names
  * for each contributor role.
  */
-function extractContributors(opf: OPF): Contributors {
+function extractContributors(epub: Epub): Contributors {
   const contributorFields = extractMetaField(
-    opf,
+    epub,
     (meta: Metafield) =>
       meta.Property === 'dcterms:creator' ||
       meta.Property === 'dcterms:contributor'
@@ -143,7 +146,7 @@ function extractContributors(opf: OPF): Contributors {
       // get the role, which is a sibling xml node. The default is contributor
       const epubRole =
         extractMetaField(
-          opf,
+          epub,
           field => field.Property === 'role' && field.ID === contributor.ID
         )?.[0]?.Data ?? 'contributor';
       const webpubRole = roleMap[epubRole] ?? 'contributor';
@@ -156,7 +159,7 @@ function extractContributors(opf: OPF): Contributors {
   );
 
   // the author get pre-extracted for some reason from the metafields
-  const creators = extractMetadataMember(opf, 'Creator');
+  const creators = extractMetadataMember(epub, 'Creator');
   if (creators.length > 0) {
     if (creators.length > 1) {
       contributors.author = creators.map(creator => creator.Data);
@@ -168,7 +171,7 @@ function extractContributors(opf: OPF): Contributors {
   return contributors;
 }
 
-function extractLinks(opf: OPF) {
+function extractLinks(epub: Epub) {
   return [];
 }
 
@@ -178,22 +181,27 @@ type ReadingOrderAndResources = {
   readingOrder: ReadiumLink[];
   resources?: ReadiumLink[];
 };
+
 /**
  * The readingOrder lists the resources of the publication in the reading order
  * they should be read in. The resources object is for any _other_ resources needed,
- * but not found in the readingOrder, such as css files.
+ * but not found in the readingOrder, such as css files. We first get all the resources,
+ * then remove the ones that are in the reading order (the opf's Spine). Spec:
+ *
+ * http://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.
  */
-function resourcesAndReadingOrder(opf: OPF): ReadingOrderAndResources {
+async function resourcesAndReadingOrder(epub: Epub): Promise<ReadingOrderAndResources> {
   // get out every resources from the manifest
-  const allResources = extractResources(opf);
+  const allResources = await extractResources(epub);
   // keep a record of what IDs appear in the reading order so we can filter them
   // from the resources later
   const appearsInReadingOrder: Record<string, boolean> = {};
-  const readingOrder = opf.Spine.Items.reduce<ReadiumLink[]>((acc, item) => {
-    const link = allResources.find(link => link.id);
+  const readingOrder = epub.opf.Spine.Items.reduce<ReadiumLink[]>((acc, item) => {
+    const link = allResources.find(link => link.id === item.IDref);
     if (link) {
       if (!item.Linear || item.Linear === 'yes') {
         acc.push(link);
+        appearsInReadingOrder[link.id] = true;
       }
     }
     return acc;
@@ -210,59 +218,137 @@ function resourcesAndReadingOrder(opf: OPF): ReadingOrderAndResources {
 }
 
 /**
- * This seems it comes from the Spine:
- * http://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.
- *
- * We only add the items with `linear: 'yes'`, as any other items
- * are not part of reading order, just a resource.
- *
- */
-function extractReadingOrder(opf: OPF, resources: LinkWithId[]): ReadiumLink[] {
-  const readingOrder = opf.Spine.Items.reduce<ReadiumLink[]>((acc, item) => {
-    if (!item.Linear || item.Linear === 'yes') {
-      const link = resources.find(link => link.id);
-      if (link) acc.push(link);
-    }
-    return acc;
-  }, []);
-  return readingOrder;
-}
-
-/**
  * This is a very basic implementation that extracts resources from the OPF
- * manifest. The links are only given href, type and ID for now.
+ * manifest. The links href, type, and ID, and other info detected
+ * from the properties string.
+ * 
+ * The Readium implementation will look for a <meta name="cover"> tag 
+ * to add a rel:"cover" property to the link, but we have decided not 
+ * to do that since it's not in the EPUB 2 or EPUB 3 spec. 
+ * We can add it in the future if necessary.
  */
-function extractResources(opf: OPF): LinkWithId[] {
-  const resources: LinkWithId[] = opf.Manifest.map(item => {
-    const decodedHref = item.HrefDecoded;
-    if (!decodedHref) {
-      throw new Error(`OPF Link missing HrefDecoded`);
-    }
-    const mimeType = item.MediaType;
-    return {
-      href: decodedHref,
-      type: mimeType,
-      id: item.ID,
-    };
-  });
+async function extractResources(epub: Epub): Promise<LinkWithId[]> {
+  const resources: LinkWithId[] = await Promise.all(epub.opf.Manifest.map(
+    manifestToLink(epub)
+  ));
 
   return resources;
 }
 
 /**
- * Only EPUB 2 uses the toc.ncx file. EPUB 3 uses
- * the spine insted.
+ * Process an OPF Manifest item (called a Manifest) into
+ * a Readium link for the resources or reading order.
  *
- * QUESTION: What is the role of <spine> when there exists
- * a toc.ncx file? It appears the spine (in EPUB 2 at least) is for
- * reading order.
+ * EPUB 3 OPF files can have 'properties' on the <meta> tags and on th
+ * manifest items. These need to be processed into values we define on the
+ * ReadiumLink, like rel: "cover" for example.
+ *
+ * EPUB 2 files do not have properties.
+ *
+ * This function is curried so we can pass it an opf once and then use it in a map
+ * function.
+ *
+ */
+const manifestToLink = (epub: Epub) => async (
+  manifest: Manifest
+): Promise<LinkWithId> => {
+  const decodedHref = manifest.HrefDecoded;
+  if (!decodedHref) {
+    throw new Error(`OPF Link missing HrefDecoded`);
+  }
+  const link: LinkWithId = {
+    // I'm not sure if this should be hard-coded or what...
+    href: `OEBPS/${decodedHref}`,
+    type: manifest.MediaType,
+    id: manifest.ID,
+  };
+
+  // if it is an image, we should get the height and width
+  if (link.type?.includes('image/')) {
+    const dimensions = await getImageDimensions(epub, link);
+    if (dimensions?.width && dimensions.height) {
+      link.width = dimensions.width;
+      link.height = dimensions.height;
+    }
+  }
+
+  const linkWithProperties = withEpub3Properties(epub, manifest, link);
+
+  return linkWithProperties;
+};
+
+/**
+ * EPUB 3
+ * Add the properties to the link. This is barely implemented
+ * and there is much more to add if we want. It is found in:
+ * Readium Code: https://github.com/readium/r2-shared-js/blob/79378116dd296ad3c8dd474818a0cd37fc84dd53/src/parser/epub.ts#L441
+ * EPUB 3 Spec: http://idpf.org/epub/30/spec/epub30-publications.html#sec-item-property-values
+ * @TODO :
+ *  - add media overlay
+ */
+function withEpub3Properties(
+  epub: Epub,
+  manifest: Manifest,
+  link: LinkWithId
+): LinkWithId {
+  // get properties from both the manifest itself and the spine
+  const manifestProperties = propertiesArrayFromString(manifest.Properties);
+  const spineProperties = propertiesArrayFromString(
+    epub.opf.Spine?.Items?.find(item => item.IDref === manifest.ID)?.Properties
+  );
+  const allProperties = [...manifestProperties, ...spineProperties];
+
+  for (const p of allProperties) {
+    switch (p) {
+      case 'cover-image':
+        link.rel = 'cover';
+        break;
+      case 'nav':
+        link.rel = 'contents';
+        break;
+      default:
+        break;
+    }
+  }
+  return link;
+}
+
+/**
+ * Parses a space separated string of properties into an array
+ */
+function propertiesArrayFromString(str: string | undefined | null): string[] {
+  return (
+    str
+      ?.trim()
+      .split(' ')
+      .map(role => role.trim())
+      .filter(role => role.length > 0) ?? []
+  );
+}
+
+/**
+ * Gets the image buffer and figures out the dimensions
+ */
+async function getImageDimensions(epub: Epub, link: ReadiumLink) {
+  const imageBuffer = await epub.getBuffer(link.href);
+  const dimensions = safelyGet(sizeOf(imageBuffer).images ?? [], 0);
+  return dimensions;
+}
+
+/**
+ * Only EPUB 2 uses the toc.ncx file. EPUB 3 uses
+ * the spine insted. In EPUB 2, the spine defines the reading order
+ * only, while in EPUB 3 it defines reading order and TOC.
+ * @TODO : add EPUB 3 TOC extraction
  */
 function extractToc(
-  opf: OPF,
-  tocDoc: Document | undefined
+  epub: Epub
 ): WebpubManifest['toc'] {
   // detect version
-  return tocDoc ? extractTocFromNcx(tocDoc) : undefined;
+  if (!epub.ncx) {
+    throw new Error('EPUB 3 TOC extraction not yet implemented');
+  }
+  return extractTocFromNcx(epub.ncx);
 }
 
 const select = xpath.useNamespaces({
