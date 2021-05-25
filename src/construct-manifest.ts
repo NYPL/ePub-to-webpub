@@ -1,17 +1,14 @@
-import { OPF } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf';
 import { DCMetadata } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-dc-metadata';
 import { Metafield } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-metafield';
 import { ReadiumWebpubContext } from './constants';
 import { Contributors } from './types/Metadata';
 import { ReadiumLink } from './types/ReadiumLink';
 import { WebpubManifest } from './types/WebpubManifest';
-import xpath from 'xpath';
-import { DOMParser } from 'xmldom';
 import sizeOf from 'image-size';
 import { Manifest } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-manifest';
-import { safelyGet } from './utils';
-import { getImageBuffer } from './get-files';
 import Epub from './Epub';
+import { NCX } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/ncx';
+import { NavPoint } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/ncx-navpoint';
 
 /**
  * References:
@@ -29,14 +26,13 @@ import Epub from './Epub';
  *    link in resources.
  * - Add media overlay?
  * - adobe page map to page list
+ * - page list support in general
  */
 
 /**
  * Main entrypoint to constructing a manifest from an opf and NCX
  */
-export async function constructManifest(
-  epub: Epub
-): Promise<WebpubManifest> {
+export async function constructManifest(epub: Epub): Promise<WebpubManifest> {
   const metadata = extractMetadata(epub);
   const links = extractLinks(epub);
   const resourcesObj = await resourcesAndReadingOrder(epub);
@@ -190,22 +186,27 @@ type ReadingOrderAndResources = {
  *
  * http://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.
  */
-async function resourcesAndReadingOrder(epub: Epub): Promise<ReadingOrderAndResources> {
+async function resourcesAndReadingOrder(
+  epub: Epub
+): Promise<ReadingOrderAndResources> {
   // get out every resources from the manifest
   const allResources = await extractResources(epub);
   // keep a record of what IDs appear in the reading order so we can filter them
   // from the resources later
   const appearsInReadingOrder: Record<string, boolean> = {};
-  const readingOrder = epub.opf.Spine.Items.reduce<ReadiumLink[]>((acc, item) => {
-    const link = allResources.find(link => link.id === item.IDref);
-    if (link) {
-      if (!item.Linear || item.Linear === 'yes') {
-        acc.push(link);
-        appearsInReadingOrder[link.id] = true;
+  const readingOrder = epub.opf.Spine.Items.reduce<ReadiumLink[]>(
+    (acc, item) => {
+      const link = allResources.find(link => link.id === item.IDref);
+      if (link) {
+        if (!item.Linear || item.Linear === 'yes') {
+          acc.push(link);
+          appearsInReadingOrder[link.id] = true;
+        }
       }
-    }
-    return acc;
-  }, []);
+      return acc;
+    },
+    []
+  );
   // filter allResources to only have ones not found in reading order
   const resources = allResources.filter(
     link => !appearsInReadingOrder[link.id]
@@ -221,16 +222,16 @@ async function resourcesAndReadingOrder(epub: Epub): Promise<ReadingOrderAndReso
  * This is a very basic implementation that extracts resources from the OPF
  * manifest. The links href, type, and ID, and other info detected
  * from the properties string.
- * 
- * The Readium implementation will look for a <meta name="cover"> tag 
- * to add a rel:"cover" property to the link, but we have decided not 
- * to do that since it's not in the EPUB 2 or EPUB 3 spec. 
+ *
+ * The Readium implementation will look for a <meta name="cover"> tag
+ * to add a rel:"cover" property to the link, but we have decided not
+ * to do that since it's not in the EPUB 2 or EPUB 3 spec.
  * We can add it in the future if necessary.
  */
 async function extractResources(epub: Epub): Promise<LinkWithId[]> {
-  const resources: LinkWithId[] = await Promise.all(epub.opf.Manifest.map(
-    manifestToLink(epub)
-  ));
+  const resources: LinkWithId[] = await Promise.all(
+    epub.opf.Manifest.map(manifestToLink(epub))
+  );
 
   return resources;
 }
@@ -330,8 +331,8 @@ function propertiesArrayFromString(str: string | undefined | null): string[] {
  * Gets the image buffer and figures out the dimensions
  */
 async function getImageDimensions(epub: Epub, link: ReadiumLink) {
-  const imageBuffer = await epub.getBuffer(link.href);
-  const dimensions = safelyGet(sizeOf(imageBuffer).images ?? [], 0);
+  const pth = epub.getFullHref(link.href);
+  const dimensions = sizeOf(pth);
   return dimensions;
 }
 
@@ -341,9 +342,7 @@ async function getImageDimensions(epub: Epub, link: ReadiumLink) {
  * only, while in EPUB 3 it defines reading order and TOC.
  * @TODO : add EPUB 3 TOC extraction
  */
-function extractToc(
-  epub: Epub
-): WebpubManifest['toc'] {
+function extractToc(epub: Epub): WebpubManifest['toc'] {
   // detect version
   if (!epub.ncx) {
     throw new Error('EPUB 3 TOC extraction not yet implemented');
@@ -351,83 +350,44 @@ function extractToc(
   return extractTocFromNcx(epub.ncx);
 }
 
-const select = xpath.useNamespaces({
-  epub: 'http://www.idpf.org/2007/ops',
-  xhtml: 'http://www.w3.org/1999/xhtml',
-});
-
 /**
  * NCX files are used by EPUB 2 books to define the
  * TOC. The spec is here:
  * http://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1
  */
-export function extractTocFromNcx(ncx: Document): ReadiumLink[] {
-  // const navMap = ncx.getElementsByTagName('navMap')[0];
+export function extractTocFromNcx(ncx: NCX): ReadiumLink[] {
+  const points = ncx.Points;
 
-  const points = select('/navMap/navPoint', ncx);
-
-  const toc = points.map(point => {
-    return navPointToLink(point.toString());
-  });
+  const toc = points.map(navPointToLink);
 
   return toc;
 }
 
-function selectAttr(query: string, node: Node): string | undefined {
-  const selectedVal = select(query, node, true);
-  if (typeof selectedVal === 'object' && 'value' in selectedVal) {
-    return selectedVal.value;
-  }
-  return undefined;
-}
-function selectText(query: string, node: Node): string | undefined {
-  const val = select(query, node, true);
-  if (typeof val === 'object' && 'nodeValue' in val) {
-    return val.nodeValue ?? undefined;
-  }
-  return undefined;
-}
-
 /**
- * Extracts a ReadiumLink from an NCX XML string. We have to pass the string
- * and re-form the Document on every recursion otherwise this doesn't work.
+ * Turns a NavPoint from an NCX file into a ReadiumLink.
  */
-export function navPointToLink(xml: string): ReadiumLink {
-  // construct a Document from the xml string
-  const point = new DOMParser().parseFromString(xml);
-
-  // check if this is indeed a Node
-  if (
-    typeof point === 'string' ||
-    typeof point === 'boolean' ||
-    typeof point === 'string' ||
-    typeof point === 'number'
-  ) {
-    throw new Error('SelectedValue is not a valid Node.');
-  }
-  const title = selectText('navPoint/navLabel/text/text()', point);
-  const href = selectAttr('/navPoint/content/@src', point);
-  const childrenNodes = select('navPoint/navPoint', point).filter(
-    child => !!child
-  );
+export function navPointToLink(point: NavPoint): ReadiumLink {
+  const href = point.Content.SrcDecoded;
   if (!href) {
-    throw new Error(
-      `Malformed navPoint. Point with title: "${title}" is missing href`
-    );
+    throw new Error(`NavPoint missing href: ${point}`);
   }
   const link: ReadiumLink = {
-    title,
-    href,
+    title: point.NavLabel.Text,
+    href: `OEBPS/${href}`,
   };
-  if (childrenNodes.length > 0) {
-    const children = childrenNodes
-      .map(child => navPointToLink(child.toString()))
-      .filter(isLink);
+
+  // we cast this to make the type wider because it's wrong in r2-shared-js.
+  // it actually can be undefined.
+  const childPoints = point.Points as NavPoint[] | undefined;
+  // recurse on the children points
+  if (childPoints && childPoints.length > 0) {
+    const children = childPoints.map(navPointToLink).filter(isLink);
     link.children = children;
   }
   return link;
 }
 
+// useful for typescript to use in a filter
 function isLink(val: ReadiumLink | undefined): val is ReadiumLink {
   return !!val;
 }

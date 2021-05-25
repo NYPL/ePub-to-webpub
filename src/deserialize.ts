@@ -3,6 +3,7 @@ import { DOMParser } from 'xmldom';
 import { XML } from 'r2-utils-js/dist/es8-es2017/src/_utils/xml-js-mapper';
 import { Container } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/container';
 import { NCX_MEDIA_TYPE } from './constants';
+import { NCX } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/ncx';
 /**
  * This file is all about deserializing strings into in-memory
  * JS structures, usually custom classes from XML
@@ -81,5 +82,5 @@ export function getNcxHref(opf: OPF) {
  * Parses an NCX XML string into a TOC Document
  */
 export function parseNcx(ncxStr: string | undefined) {
-  return ncxStr ? new DOMParser().parseFromString(ncxStr) : undefined;
+  return ncxStr ? parseXmlString<NCX>(ncxStr, NCX) : undefined;
 }
