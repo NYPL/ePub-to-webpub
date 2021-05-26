@@ -2,11 +2,6 @@ import path from 'path';
 import { constructManifest } from './construct-manifest';
 import LocalExplodedEpub from './LocalEpub';
 
-/**
- * - Source the necessary files
- * - Deserialize them into custom classes
- * - Use them to construct the manifest
- */
 export async function localExploded(containerXmlPath: string) {
   const epub = await LocalExplodedEpub.build(containerXmlPath);
 

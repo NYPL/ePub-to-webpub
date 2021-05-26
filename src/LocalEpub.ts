@@ -6,10 +6,8 @@ import Epub from './Epub';
 import { NCX } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/ncx';
 
 /**
- * A class to handle the getting of resources for a local exploded
- * EPUB.
- * We need in-memory representations of the container, content.opf, toc.ncx, etc
- * We will need to load, parse, and deserialize each using the XML utility of r2-utils-js
+ * Extends the Epub class to add support for locally
+ * sourced, exploded EPUBs.
  */
 export default class LocalExplodedEpub extends Epub {
   private constructor(

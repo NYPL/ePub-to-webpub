@@ -6,6 +6,29 @@ import { Metafield } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-meta
 import { XML } from 'r2-utils-js/dist/es8-es2017/src/_utils/xml-js-mapper';
 import { DOMParser } from 'xmldom';
 
+/**
+ * This class represents a complete EPUB. It is abstract
+ * because it is meant to be subclassed to support various
+ * ways an EPUB can be sourced:
+ *  - Local (filesystem) exploded EPUB
+ *  - Local packaged EPUB
+ *  - Remote (external server) exploded EPUB
+ *  - Remote packaged EPUB
+ *
+ * For each of these cases we should only need to implement
+ * the following functions:
+ *  - build
+ *  - getFileStr
+ *  - getFullHref
+ * Then, the consumer (in this case construct-manifest) doesn't
+ * need to worry about how to source the contents, that's abstracted
+ * away. It just uses the properties and methods on the Epub class
+ * to build the manifest.
+ *
+ * This class includes utilites used to parse the string file values
+ * into in-memory representations and to extract values from the various
+ * data structures. They will be used by all subclasses.
+ */
 export default abstract class Epub {
   static NCX_MEDIA_TYPE = 'application/x-dtbncx+xml';
 
