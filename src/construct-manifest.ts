@@ -1,13 +1,14 @@
 import { Metafield } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-metafield';
 import { ReadiumWebpubContext } from './constants';
-import { Contributors } from './types/Metadata';
-import { ReadiumLink } from './types/ReadiumLink';
-import { WebpubManifest } from './types/WebpubManifest';
+import { Contributors } from './WebpubManifest/Metadata';
+import { ReadiumLink } from './WebpubManifest/ReadiumLink';
+import { WebpubManifest } from './WebpubManifest/WebpubManifest';
 import sizeOf from 'image-size';
 import { Manifest } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-manifest';
 import Epub from './Epub';
 import { NCX } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/ncx';
 import { NavPoint } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/ncx-navpoint';
+import path from 'path';
 
 /**
  * References:
@@ -210,7 +211,7 @@ async function extractResources(epub: Epub): Promise<LinkWithId[]> {
  *
  * EPUB 2 files do not have properties.
  *
- * This function is curried so we can pass it an opf once and then use it in a map
+ * This function is curried so we can pass it an epub once and then use it in a map
  * function.
  *
  */
@@ -222,16 +223,16 @@ const manifestToLink = (epub: Epub) => async (
     throw new Error(`OPF Link missing HrefDecoded`);
   }
   const link: LinkWithId = {
-    // I'm not sure if this should be hard-coded or what...
-    href: `OEBPS/${decodedHref}`,
+    href: epub.getRelativeHref(decodedHref),
     type: manifest.MediaType,
     id: manifest.ID,
   };
 
   // if it is an image, we should get the height and width
   if (link.type?.includes('image/')) {
-    const dimensions = await getImageDimensions(epub, link);
+    const dimensions = await getImageDimensions(epub, decodedHref);
     if (dimensions?.width && dimensions.height) {
+      console.log(dimensions);
       link.width = dimensions.width;
       link.height = dimensions.height;
     }
@@ -257,8 +258,10 @@ function withEpub3Properties(
   link: LinkWithId
 ): LinkWithId {
   // get properties from both the manifest itself and the spine
-  const manifestProperties = propertiesArrayFromString(manifest.Properties);
-  const spineProperties = propertiesArrayFromString(
+  const manifestProperties = Epub.propertiesArrayFromString(
+    manifest.Properties
+  );
+  const spineProperties = Epub.propertiesArrayFromString(
     epub.opf.Spine?.Items?.find(item => item.IDref === manifest.ID)?.Properties
   );
   const allProperties = [...manifestProperties, ...spineProperties];
@@ -279,23 +282,10 @@ function withEpub3Properties(
 }
 
 /**
- * Parses a space separated string of properties into an array
- */
-function propertiesArrayFromString(str: string | undefined | null): string[] {
-  return (
-    str
-      ?.trim()
-      .split(' ')
-      .map(role => role.trim())
-      .filter(role => role.length > 0) ?? []
-  );
-}
-
-/**
  * Gets the image buffer and figures out the dimensions
  */
-async function getImageDimensions(epub: Epub, link: ReadiumLink) {
-  const pth = epub.getFullHref(link.href);
+async function getImageDimensions(epub: Epub, relativeHref: string) {
+  const pth = epub.getAbsoluteHref(relativeHref);
   const dimensions = sizeOf(pth);
   return dimensions;
 }
@@ -307,22 +297,32 @@ async function getImageDimensions(epub: Epub, link: ReadiumLink) {
  * @TODO : add EPUB 3 TOC extraction
  */
 function extractToc(epub: Epub): WebpubManifest['toc'] {
-  // detect version
-  if (!epub.ncx) {
-    throw new Error('EPUB 3 TOC extraction not yet implemented');
+  // detect versionjj
+  if (epub.version === '3') {
+    return extractTocFromNavDoc(epub);
   }
-  return extractTocFromNcx(epub.ncx);
+  if (!epub.ncx) {
+    throw new Error('EPUB 2 missing NCX file');
+  }
+  return extractTocFromNcx(epub, epub.ncx);
 }
+
+/**
+ * EPUB 3s embed the TOC information in a Nav Document,
+ * whereas EPUB 2s put that info in the NCX file. This function
+ * extracts TOC information for the manifest from the Nav Document
+ */
+function extractTocFromNavDoc(epub: Epub): ReadiumLink[] {}
 
 /**
  * NCX files are used by EPUB 2 books to define the
  * TOC. The spec is here:
  * http://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1
  */
-export function extractTocFromNcx(ncx: NCX): ReadiumLink[] {
+export function extractTocFromNcx(epub: Epub, ncx: NCX): ReadiumLink[] {
   const points = ncx.Points;
 
-  const toc = points.map(navPointToLink);
+  const toc = points.map(navPointToLink(epub));
 
   return toc;
 }
@@ -330,14 +330,16 @@ export function extractTocFromNcx(ncx: NCX): ReadiumLink[] {
 /**
  * Turns a NavPoint from an NCX file into a ReadiumLink.
  */
-export function navPointToLink(point: NavPoint): ReadiumLink {
+export const navPointToLink = (epub: Epub) => (
+  point: NavPoint
+): ReadiumLink => {
   const href = point.Content.SrcDecoded;
   if (!href) {
     throw new Error(`NavPoint missing href: ${point}`);
   }
   const link: ReadiumLink = {
     title: point.NavLabel.Text,
-    href: `OEBPS/${href}`,
+    href: epub.getRelativeHref(href),
   };
 
   // we cast this to make the type wider because it's wrong in r2-shared-js.
@@ -345,11 +347,11 @@ export function navPointToLink(point: NavPoint): ReadiumLink {
   const childPoints = point.Points as NavPoint[] | undefined;
   // recurse on the children points
   if (childPoints && childPoints.length > 0) {
-    const children = childPoints.map(navPointToLink).filter(isLink);
+    const children = childPoints.map(navPointToLink(epub)).filter(isLink);
     link.children = children;
   }
   return link;
-}
+};
 
 // useful for typescript to use in a filter
 function isLink(val: ReadiumLink | undefined): val is ReadiumLink {

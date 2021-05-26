@@ -15,34 +15,50 @@ export default class LocalExplodedEpub extends Epub {
     folderPath: string,
     container: Container,
     opf: OPF,
-    ncx: NCX | undefined
+    ncx: NCX | undefined,
+    navDoc: Document | undefined
   ) {
-    super(containerXmlPath, folderPath, container, opf, ncx);
+    super(containerXmlPath, folderPath, container, opf, ncx, navDoc);
   }
 
   static async build(containerXmlPath: string) {
-    const folderPath = containerXmlPath.replace('META-INF/container.xml', '');
+    const folderPath = containerXmlPath.replace(this.CONTAINER_PATH, '');
     const container = Epub.parseContainer(
       await LocalExplodedEpub.getFileStr(folderPath, containerXmlPath)
     );
+    const rootfile = Epub.getRootfile(container);
     const opfPath = path.resolve(folderPath, Epub.getOpfPath(container));
     const opf = await Epub.parseOpf(
       await LocalExplodedEpub.getFileStr(folderPath, opfPath)
     );
 
-    // the TOC href lives in the opf.Manifest
     const ncxHref = Epub.getNcxHref(opf);
     const ncxStr = ncxHref
-      ? await LocalExplodedEpub.getFileStr(folderPath, 'OEBPS/', ncxHref)
+      ? await LocalExplodedEpub.getFileStr(
+          folderPath,
+          Epub.getContentPath(rootfile, opf),
+          ncxHref
+        )
       : undefined;
     const ncx = Epub.parseNcx(ncxStr);
+
+    const navDocHref = Epub.getNavDocHref(opf);
+    const navDocStr = navDocHref
+      ? await LocalExplodedEpub.getFileStr(
+          folderPath,
+          Epub.getContentPath(rootfile, opf),
+          navDocHref
+        )
+      : undefined;
+    const navDoc = Epub.parseNavDoc(navDocStr);
 
     return new LocalExplodedEpub(
       containerXmlPath,
       folderPath,
       container,
       opf,
-      ncx
+      ncx,
+      navDoc
     ) as Epub;
   }
 
@@ -56,10 +72,19 @@ export default class LocalExplodedEpub extends Epub {
     return Promise.resolve(fs.readFileSync(fullPath, 'utf-8'));
   }
   getFileStr(path: string): Promise<string> {
-    return LocalExplodedEpub.getFileStr(this.folderPath, path);
+    return LocalExplodedEpub.getFileStr(
+      this.folderPath,
+      this.contentPath,
+      path
+    );
   }
 
-  getFullHref(relative: string): string {
-    return path.resolve(this.folderPath, relative);
+  getRelativeHref(relative: string): string {
+    return `${this.contentPath}${relative}`;
+  }
+
+  getAbsoluteHref(relative: string): string {
+    const abs = path.resolve(this.folderPath, this.contentPath, relative);
+    return abs;
   }
 }

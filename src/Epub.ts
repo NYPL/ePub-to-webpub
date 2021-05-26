@@ -5,6 +5,8 @@ import { DCMetadata } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-dc-
 import { Metafield } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-metafield';
 import { XML } from 'r2-utils-js/dist/es8-es2017/src/_utils/xml-js-mapper';
 import { DOMParser } from 'xmldom';
+import { EpubVersion } from './types';
+import { Rootfile } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/container-rootfile';
 
 /**
  * This class represents a complete EPUB. It is abstract
@@ -31,13 +33,16 @@ import { DOMParser } from 'xmldom';
  */
 export default abstract class Epub {
   static NCX_MEDIA_TYPE = 'application/x-dtbncx+xml';
+  static CONTAINER_PATH = 'META-INF/container.xml';
 
   constructor(
     private readonly containerXmlPath: string,
     public readonly folderPath: string,
     public readonly container: Container,
     public readonly opf: OPF,
-    public readonly ncx: NCX | undefined
+    // EPUB 2 uses NCX, EPUB 3 uses NavDoc
+    public readonly ncx: NCX | undefined,
+    public readonly navDoc: Document | undefined
   ) {}
 
   public static async build(containerXmlPath: string): Promise<Epub> {
@@ -47,10 +52,42 @@ export default abstract class Epub {
   }
 
   ///////////////////
+  // ACCESSOR METHODS AND UTILS
+  // We need static and instance methods of these because the static version is
+  // used in the subclass's `build` method
+  ///////////////////
+
+  static getVersion(rootfile: Rootfile | undefined, opf: OPF): EpubVersion {
+    const versionNumber = rootfile?.Version ?? opf.Version;
+    return versionNumber.startsWith('3') ? '3' : '2';
+  }
+  get version(): EpubVersion {
+    return Epub.getVersion(this.rootfile, this.opf);
+  }
+
+  static getRootfile(container: Container): Rootfile | undefined {
+    return container.Rootfile[0];
+  }
+  get rootfile(): Rootfile | undefined {
+    return Epub.getRootfile(this.container);
+  }
+
+  static getContentPath(rootfile: Rootfile | undefined, opf: OPF): string {
+    return Epub.getVersion(rootfile, opf) === '2' ? 'OEBPS/' : 'OPS/';
+  }
+  get contentPath(): string {
+    return Epub.getContentPath(this.rootfile, this.opf);
+  }
+
+  ///////////////////
   // ABSTRACT METHODS THAT DIFFER BY SUBCLASS
   ///////////////////
 
-  abstract getFullHref(path: string): string;
+  // returns an href relative to the folder root given one relative to the content
+  // directory (ie from OEBPS or OPS)
+  abstract getRelativeHref(path: string): string;
+  // returns the absolute href to get the file, whether a remote url or a filesystem path
+  abstract getAbsoluteHref(path: string): string;
   abstract getFileStr(path: string): Promise<string>;
 
   ///////////////////
@@ -131,6 +168,30 @@ export default abstract class Epub {
    */
   static parseNcx(ncxStr: string | undefined) {
     return ncxStr ? Epub.parseXmlString<NCX>(ncxStr, NCX) : undefined;
+  }
+
+  static getNavDocHref(opf: OPF): string | undefined {
+    const navDocItem = opf.Manifest.find(item =>
+      Epub.propertiesArrayFromString(item.Properties).includes('nav')
+    );
+    return navDocItem?.HrefDecoded;
+  }
+
+  static parseNavDoc(navDocStr: string | undefined) {
+    return navDocStr ? new DOMParser().parseFromString(navDocStr) : undefined;
+  }
+
+  /**
+   * Parses a space separated string of properties into an array
+   */
+  static propertiesArrayFromString(str: string | undefined | null): string[] {
+    return (
+      str
+        ?.trim()
+        .split(' ')
+        .map(role => role.trim())
+        .filter(role => role.length > 0) ?? []
+    );
   }
 
   ///////////////////

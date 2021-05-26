@@ -1,4 +1,3 @@
-import path from 'path';
 import { constructManifest } from './construct-manifest';
 import LocalExplodedEpub from './LocalExplodedEpub';
 
@@ -10,12 +9,3 @@ export async function localExploded(containerXmlPath: string) {
 
   return manifest;
 }
-
-// the entrypoint is a container.xml file. We can change this
-// later to be just the folder itself if we want.
-const containerXmlPath = path.resolve(
-  __dirname,
-  '../samples/moby-epub-exploded/META-INF/container.xml'
-);
-
-localExploded(containerXmlPath);
