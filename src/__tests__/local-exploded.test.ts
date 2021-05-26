@@ -1,7 +1,7 @@
 import path from 'path';
 import { localExploded } from '..';
-import explodedMobyManifest from './stubs/exploded-moby-manifest';
-
+import mobyEpub2Manifest from './stubs/moby-epub2';
+import mobyEpub3Manifest from './stubs/moby-epub3';
 /**
  * Compares two objects only by a set of passed
  * in keys
@@ -30,18 +30,18 @@ const expectSelectivelyArr = (
   });
 };
 
-describe('EPUB 2', () => {
+describe('Moby EPUB 2 Exploded', () => {
   async function getManifest() {
     const containerXmlPath = path.resolve(
       __dirname,
-      '../../samples/moby-epub-exploded/META-INF/container.xml'
+      '../../samples/moby-epub2-exploded/META-INF/container.xml'
     );
     return await localExploded(containerXmlPath);
   }
 
   it('context', async () => {
     const manifest = await getManifest();
-    expect(manifest['@context']).toBe(explodedMobyManifest['@context']);
+    expect(manifest['@context']).toBe(mobyEpub2Manifest['@context']);
   });
 
   it('extracts correct metadata', async () => {
@@ -49,26 +49,18 @@ describe('EPUB 2', () => {
 
     expectSelectively(
       manifest.metadata,
-      explodedMobyManifest.metadata,
+      mobyEpub2Manifest.metadata,
       'author',
       'title',
       'language'
     );
   });
 
-  // we don't have this currently, and might not need it at all.
-  // it('extracts links', async () => {
-  //   const manifest = await getManifest();
-  //   // links
-  //   // we will need to add a canonical self link eventually
-  //   throw new Error('Links are not implemented');
-  // });
-
   it('extracts reading order', async () => {
     const manifest = await getManifest();
     expectSelectivelyArr(
       manifest.readingOrder,
-      explodedMobyManifest.readingOrder,
+      mobyEpub2Manifest.readingOrder,
       'href',
       'type'
     );
@@ -79,16 +71,75 @@ describe('EPUB 2', () => {
 
     expectSelectivelyArr(
       manifest.resources as any,
-      explodedMobyManifest.resources,
+      mobyEpub2Manifest.resources,
       'href',
       'type',
       'width',
+      'height',
       'type'
     );
   });
 
   it('extracts toc', async () => {
     const manifest = await getManifest();
-    expect(manifest.toc).toEqual(explodedMobyManifest.toc);
+    expect(manifest.toc).toEqual(mobyEpub2Manifest.toc);
+  });
+});
+
+describe.only('Moby EPUB 3 Exploded', () => {
+  async function getManifest() {
+    const containerXmlPath = path.resolve(
+      __dirname,
+      '../../samples/moby-epub3-exploded/META-INF/container.xml'
+    );
+    return await localExploded(containerXmlPath);
+  }
+
+  it('context', async () => {
+    const manifest = await getManifest();
+    expect(manifest['@context']).toBe(mobyEpub3Manifest['@context']);
+  });
+
+  it('extracts correct metadata', async () => {
+    const manifest = await getManifest();
+
+    expect(manifest.metadata.author).toBe(
+      mobyEpub3Manifest.metadata.author.name
+    );
+    expectSelectively(
+      manifest.metadata,
+      mobyEpub3Manifest.metadata,
+      'title',
+      'language'
+    );
+  });
+
+  it('extracts reading order', async () => {
+    const manifest = await getManifest();
+    expectSelectivelyArr(
+      manifest.readingOrder,
+      mobyEpub3Manifest.readingOrder,
+      'href',
+      'type'
+    );
+  });
+
+  it('extracts resources', async () => {
+    const manifest = await getManifest();
+    console.log(manifest.resources);
+    expectSelectivelyArr(
+      manifest.resources as any,
+      mobyEpub3Manifest.resources,
+      'href',
+      'type',
+      'width',
+      'height',
+      'type'
+    );
+  });
+
+  it.only('extracts toc', async () => {
+    const manifest = await getManifest();
+    expect(manifest.toc).toEqual(mobyEpub3Manifest.toc);
   });
 });
