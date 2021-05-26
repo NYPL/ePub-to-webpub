@@ -1,5 +1,4 @@
 import { navPointToLink } from '../construct-manifest';
-import { ncxString } from './ncxStub';
 import xpath from 'xpath';
 import { DOMParser } from 'xmldom';
 

@@ -8,7 +8,8 @@ import { Manifest } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-manif
 import Epub from './Epub';
 import { NCX } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/ncx';
 import { NavPoint } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/ncx-navpoint';
-import path from 'path';
+import xpath from 'xpath';
+import { DOMParser } from 'xmldom';
 
 /**
  * References:
@@ -258,10 +259,10 @@ function withEpub3Properties(
   link: LinkWithId
 ): LinkWithId {
   // get properties from both the manifest itself and the spine
-  const manifestProperties = Epub.propertiesArrayFromString(
+  const manifestProperties = Epub.parseSpaceSeparatedString(
     manifest.Properties
   );
-  const spineProperties = Epub.propertiesArrayFromString(
+  const spineProperties = Epub.parseSpaceSeparatedString(
     epub.opf.Spine?.Items?.find(item => item.IDref === manifest.ID)?.Properties
   );
   const allProperties = [...manifestProperties, ...spineProperties];
@@ -307,12 +308,93 @@ function extractToc(epub: Epub): WebpubManifest['toc'] {
   return extractTocFromNcx(epub, epub.ncx);
 }
 
+// used for extracting things from the NavDoc
+const select = xpath.useNamespaces({
+  epub: 'http://www.idpf.org/2007/ops',
+  xhtml: 'http://www.w3.org/1999/xhtml',
+});
+
 /**
  * EPUB 3s embed the TOC information in a Nav Document,
  * whereas EPUB 2s put that info in the NCX file. This function
  * extracts TOC information for the manifest from the Nav Document
  */
-function extractTocFromNavDoc(epub: Epub): ReadiumLink[] {}
+function extractTocFromNavDoc(epub: Epub): ReadiumLink[] {
+  const { navDoc } = epub;
+  /**
+   * - Get the "navs"
+   * - For each oe
+   *    - get the olElem
+   *    - get the roles array
+   *    - if it is a toc role, parse the toc
+   * @TODO : Parse non-TOC roles like PageList, etc
+   */
+  const navs = select(
+    '/xhtml:html/xhtml:body//xhtml:nav',
+    epub.navDoc
+  ) as Element[];
+
+  // we only care about the toc nav currently. In the future we can
+  // parse the other navs, like PageList
+  const tocNav = navs.find(nav => {
+    // the nav with epub:type="toc" is our toc
+    const epubType = (select('@epub:type', nav, true) as Attr).value;
+    const types = Epub.parseSpaceSeparatedString(epubType);
+    return types.includes('toc');
+  });
+
+  const listItems = select('//ol/li', tocNav) as Element[];
+  const toc = listItems.map(listItemToLink(epub.getRelativeHref));
+  return toc;
+}
+
+export const listItemToLink = (
+  getRelativeHref: (relative: string) => string
+) => (listItem: Element): ReadiumLink => {
+  const doc = new DOMParser().parseFromString(listItem.toString(), 'utf-8');
+  const spanTitle = select('string(/li/span)', doc, true);
+  const anchorTitle = select('string(/li/a)', doc, true);
+  const href = select('string(/li/a/@href)', doc);
+
+  const childElements = select('/li/ol/li', doc) as Element[] | undefined;
+  const children = childElements?.map(listItemToLink(getRelativeHref));
+
+  /**
+   * If the element has a span child instead of an anchor child, then
+   * it won't have an href so we use the href of the first child as the
+   * href of this section.
+   */
+  if (typeof spanTitle === 'string' && spanTitle.length > 0) {
+    // this is unsafe, but if it fails then the toc is malformed.
+    // it must have a child if it has a span instead of anchor
+    if (!children?.[0]) {
+      throw new Error('TOC List Item with <span> is missing children.');
+    }
+    const firstChildHref = children?.[0].href;
+    const link: ReadiumLink = {
+      href: firstChildHref,
+      title: spanTitle,
+    };
+    // add children if there are any
+    if (children && children.length > 0) link.children = children;
+    return link;
+  }
+  // otherwise we are dealing with a standard element with a link
+  if (typeof anchorTitle !== 'string') {
+    throw new Error('TOC List item missing title (child of anchor element).');
+  }
+  if (typeof href !== 'string') {
+    throw new Error('TOC List item missing href');
+  }
+
+  const link: ReadiumLink = {
+    title: anchorTitle,
+    href: getRelativeHref(href),
+  };
+  // add children if there are any
+  if (children && children.length > 0) link.children = children;
+  return link;
+};
 
 /**
  * NCX files are used by EPUB 2 books to define the

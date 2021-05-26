@@ -7,6 +7,7 @@ import { XML } from 'r2-utils-js/dist/es8-es2017/src/_utils/xml-js-mapper';
 import { DOMParser } from 'xmldom';
 import { EpubVersion } from './types';
 import { Rootfile } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/container-rootfile';
+import xpath from 'xpath';
 
 /**
  * This class represents a complete EPUB. It is abstract
@@ -172,7 +173,7 @@ export default abstract class Epub {
 
   static getNavDocHref(opf: OPF): string | undefined {
     const navDocItem = opf.Manifest.find(item =>
-      Epub.propertiesArrayFromString(item.Properties).includes('nav')
+      Epub.parseSpaceSeparatedString(item.Properties).includes('nav')
     );
     return navDocItem?.HrefDecoded;
   }
@@ -184,7 +185,7 @@ export default abstract class Epub {
   /**
    * Parses a space separated string of properties into an array
    */
-  static propertiesArrayFromString(str: string | undefined | null): string[] {
+  static parseSpaceSeparatedString(str: string | undefined | null): string[] {
     return (
       str
         ?.trim()
