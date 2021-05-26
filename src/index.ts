@@ -1,6 +1,6 @@
 import path from 'path';
 import { constructManifest } from './construct-manifest';
-import LocalExplodedEpub from './LocalEpub';
+import LocalExplodedEpub from './LocalExplodedEpub';
 
 export async function localExploded(containerXmlPath: string) {
   const epub = await LocalExplodedEpub.build(containerXmlPath);
