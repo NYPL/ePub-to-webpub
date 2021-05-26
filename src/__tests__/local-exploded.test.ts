@@ -86,7 +86,7 @@ describe('Moby EPUB 2 Exploded', () => {
   });
 });
 
-describe.only('Moby EPUB 3 Exploded', () => {
+describe('Moby EPUB 3 Exploded', () => {
   async function getManifest() {
     const containerXmlPath = path.resolve(
       __dirname,

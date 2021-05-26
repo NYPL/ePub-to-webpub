@@ -1,11 +1,11 @@
-import { constructManifest } from './construct-manifest';
+import { epubToManifest } from './convert';
 import LocalExplodedEpub from './LocalExplodedEpub';
 
 export async function localExploded(containerXmlPath: string) {
   const epub = await LocalExplodedEpub.build(containerXmlPath);
 
   // encode into Webpub Manifest
-  const manifest = constructManifest(epub);
+  const manifest = epubToManifest(epub);
 
   return manifest;
 }

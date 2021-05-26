@@ -1,6 +1,6 @@
 import { DOMParser } from 'xmldom';
 import xpath from 'xpath';
-import { listItemToLink } from '../construct-manifest';
+import { listItemToLink } from '../convert/navdoc';
 import Epub from '../Epub';
 
 const tocNav = `
