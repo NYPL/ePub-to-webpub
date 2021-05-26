@@ -1,50 +1,53 @@
 import { DOMParser } from 'xmldom';
 import xpath from 'xpath';
 import { listItemToLink } from '../construct-manifest';
+import Epub from '../Epub';
 
 const tocNav = `
-<nav epub:type="lot">
-  <h2>List of tables, broken down into individual groups, one per major section of the publication content
-  </h2>
-  <ol>
-    <li>
-      <span>Tables in Chapter 1</span>
-      <ol>
-        <li>
-          <a href="chap1.xhtml#table-1.1">Table 1.1</a>
-        </li>
-        <li>
-          <a href="chap1.xhtml#table-1.2">Table 1.2</a>
-        </li>
-      </ol>
-    </li>
-    <li>
-      <span>Tables in Chapter 2</span>
-      <ol>
-        <li>
-          <a href="chap2.xhtml#table-2.1">Table 2.1</a>
-        </li>
-        <li>
-          <a href="chap2.xhtml#table-2.2">Table 2.2</a>
-        </li>
-        <li>
-          <a href="chap2.xhtml#table-2.3">Table 2.3</a>
-        </li>
-      </ol>
-    </li>
-    <li>
-      <span>Tables in Appendix</span>
-      <ol>
-        <li>
-          <a href="appendix.xhtml#table-a.1">Table A.1</a>
-        </li>
-        <li>
-          <a href="appendix.xhtml#table-a.2">Table B.2</a>
-        </li>
-      </ol>
-    </li>
-  </ol>
-</nav>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+  <nav epub:type="lot">
+    <h2>List of tables, broken down into individual groups, one per major section of the publication content
+    </h2>
+    <ol>
+      <li>
+        <span>Tables in Chapter 1</span>
+        <ol>
+          <li>
+            <a href="chap1.xhtml#table-1.1">Table 1.1</a>
+          </li>
+          <li>
+            <a href="chap1.xhtml#table-1.2">Table 1.2</a>
+          </li>
+        </ol>
+      </li>
+      <li>
+        <span>Tables in Chapter 2</span>
+        <ol>
+          <li>
+            <a href="chap2.xhtml#table-2.1">Table 2.1</a>
+          </li>
+          <li>
+            <a href="chap2.xhtml#table-2.2">Table 2.2</a>
+          </li>
+          <li>
+            <a href="chap2.xhtml#table-2.3">Table 2.3</a>
+          </li>
+        </ol>
+      </li>
+      <li>
+        <span>Tables in Appendix</span>
+        <ol>
+          <li>
+            <a href="appendix.xhtml#table-a.1">Table A.1</a>
+          </li>
+          <li>
+            <a href="appendix.xhtml#table-a.2">Table B.2</a>
+          </li>
+        </ol>
+      </li>
+    </ol>
+  </nav>
+</html>
 `;
 
 const select = xpath.useNamespaces({
@@ -58,57 +61,66 @@ function strToDoc(str: string): Document {
 
 function strToLi(str: string): Element {
   const doc = strToDoc(str);
-  return xpath.select1('/li', doc) as Element;
+  return select('/xhtml:html/xhtml:li', doc, true) as Element;
 }
 
 describe('listItemToLink', () => {
   const listItemWithoutSpan = strToLi(`
-  <li>
-    <a href="parent-href">Parent</a>
-    <ol>
-      <li>
-        <a href="child-1-href">Child 1</a>
-      </li>
-      <li>
-        <a href="child-2-href">Child 2</a>
-      </li>
-    </ol>
-  </li> 
+  <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+    <li>
+      <a href="parent-href">Parent</a>
+      <ol>
+        <li>
+          <a href="child-1-href">Child 1</a>
+        </li>
+        <li>
+          <a href="child-2-href">Child 2</a>
+        </li>
+      </ol>
+    </li> 
+  </html>
   `);
 
   const listItemWithSpan = strToLi(`
-  <li>
-    <span>Parent Heading</span>
-    <ol>
-      <li>
-        <a href="child-1-href">Child 1</a>
-      </li>
-      <li>
-        <a href="child-2-href">Child 2</a>
-      </li>
-    </ol>
-  </li> 
+  <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+    <li>
+      <span>Parent Heading</span>
+      <ol>
+        <li>
+          <a href="child-1-href">Child 1</a>
+        </li>
+        <li>
+          <a href="child-2-href">Child 2</a>
+        </li>
+      </ol>
+    </li> 
+  </html>
   `);
 
   const basicListItem = strToLi(`
-  <li>
-    <a href="basic-href">Basic Title</a>
-  </li>
+  <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+    <li>
+      <a href="basic-href">Basic Title</a>
+    </li>
+  </html>
   `);
 
-  function getRelativeHref(relative: string) {
-    return `OPS/${relative}`;
-  }
+  const epub = {
+    contentPath: 'OPS/',
+    getRelativeHref: function getRelativeHref(relative: string) {
+      return `OPS/${relative}`;
+    },
+  } as Epub;
 
   it('extracts link from basic list item', () => {
-    expect(listItemToLink(getRelativeHref)(basicListItem)).toEqual({
+    expect(listItemToLink(epub)(basicListItem)).toEqual({
       title: 'Basic Title',
       href: 'OPS/basic-href',
     });
   });
 
   it('extracts link from nested list item', () => {
-    expect(listItemToLink(getRelativeHref)(listItemWithoutSpan)).toEqual({
+    expect(listItemToLink(epub)(listItemWithoutSpan)).toEqual({
       title: 'Parent',
       href: 'OPS/parent-href',
       children: [
@@ -119,7 +131,7 @@ describe('listItemToLink', () => {
   });
 
   it('extracts link from list item with <span> instead of <a>', () => {
-    expect(listItemToLink(getRelativeHref)(listItemWithSpan)).toEqual({
+    expect(listItemToLink(epub)(listItemWithSpan)).toEqual({
       title: 'Parent Heading',
       href: 'OPS/child-1-href',
       children: [

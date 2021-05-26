@@ -138,7 +138,7 @@ describe.only('Moby EPUB 3 Exploded', () => {
     );
   });
 
-  it.only('extracts toc', async () => {
+  it('extracts toc', async () => {
     const manifest = await getManifest();
     expect(manifest.toc).toEqual(mobyEpub3Manifest.toc);
   });

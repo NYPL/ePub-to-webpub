@@ -321,6 +321,7 @@ const select = xpath.useNamespaces({
  */
 function extractTocFromNavDoc(epub: Epub): ReadiumLink[] {
   const { navDoc } = epub;
+
   /**
    * - Get the "navs"
    * - For each oe
@@ -329,35 +330,33 @@ function extractTocFromNavDoc(epub: Epub): ReadiumLink[] {
    *    - if it is a toc role, parse the toc
    * @TODO : Parse non-TOC roles like PageList, etc
    */
-  const navs = select(
-    '/xhtml:html/xhtml:body//xhtml:nav',
-    epub.navDoc
-  ) as Element[];
-
   // we only care about the toc nav currently. In the future we can
   // parse the other navs, like PageList
-  const tocNav = navs.find(nav => {
-    // the nav with epub:type="toc" is our toc
-    const epubType = (select('@epub:type', nav, true) as Attr).value;
-    const types = Epub.parseSpaceSeparatedString(epubType);
-    return types.includes('toc');
-  });
+  const tocListItems = select(
+    // "/html/body//nav[@*[name()='epub:type'] = 'toc']/ol/li",
+    "/xhtml:html/xhtml:body//xhtml:nav[@*[name()='epub:type'] = 'toc']/xhtml:ol/xhtml:li",
+    navDoc
+  ) as Element[]; //?
 
-  const listItems = select('//ol/li', tocNav) as Element[];
-  const toc = listItems.map(listItemToLink(epub.getRelativeHref));
+  const toc = tocListItems.map(listItemToLink(epub));
   return toc;
 }
 
-export const listItemToLink = (
-  getRelativeHref: (relative: string) => string
-) => (listItem: Element): ReadiumLink => {
+/**
+ * Converts a NavDoc ListItem to a ReadiumLink
+ */
+export const listItemToLink = (epub: Epub) => (
+  listItem: Element
+): ReadiumLink => {
   const doc = new DOMParser().parseFromString(listItem.toString(), 'utf-8');
-  const spanTitle = select('string(/li/span)', doc, true);
-  const anchorTitle = select('string(/li/a)', doc, true);
-  const href = select('string(/li/a/@href)', doc);
+  const spanTitle = select('string(/xhtml:li/xhtml:span)', doc, true); //?
+  const anchorTitle = select('string(/xhtml:li/xhtml:a)', doc, true); //?
+  const href = select('string(/xhtml:li/xhtml:a/@href)', doc); //?
 
-  const childElements = select('/li/ol/li', doc) as Element[] | undefined;
-  const children = childElements?.map(listItemToLink(getRelativeHref));
+  const childElements = select('/xhtml:li/xhtml:ol/xhtml:li', doc) as
+    | Element[]
+    | undefined;
+  const children = childElements?.map(listItemToLink(epub));
 
   /**
    * If the element has a span child instead of an anchor child, then
@@ -380,16 +379,17 @@ export const listItemToLink = (
     return link;
   }
   // otherwise we are dealing with a standard element with a link
-  if (typeof anchorTitle !== 'string') {
-    throw new Error('TOC List item missing title (child of anchor element).');
+  // just make sure the elements are all there.
+  if (typeof anchorTitle !== 'string' || anchorTitle.length < 1) {
+    throw new Error(`TOC List item missing title: ${listItem.toString()}`);
   }
   if (typeof href !== 'string') {
-    throw new Error('TOC List item missing href');
+    throw new Error(`TOC List item missing href: ${listItem.toString()}`);
   }
 
   const link: ReadiumLink = {
     title: anchorTitle,
-    href: getRelativeHref(href),
+    href: epub.getRelativeHref(href),
   };
   // add children if there are any
   if (children && children.length > 0) link.children = children;
