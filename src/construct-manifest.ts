@@ -1,4 +1,3 @@
-import { DCMetadata } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-dc-metadata';
 import { Metafield } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-metafield';
 import { ReadiumWebpubContext } from './constants';
 import { Contributors } from './types/Metadata';
@@ -34,49 +33,20 @@ import { NavPoint } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/ncx-navpo
  */
 export async function constructManifest(epub: Epub): Promise<WebpubManifest> {
   const metadata = extractMetadata(epub);
-  const links = extractLinks(epub);
   const resourcesObj = await resourcesAndReadingOrder(epub);
   const toc = extractToc(epub);
 
   return {
     '@context': ReadiumWebpubContext,
     metadata,
-    links,
     ...resourcesObj,
     toc,
+    // we have not implemented any links
+    links: [],
   };
 }
 
 /**
- * Extracts a named metadata property from either epub.opf.Metatada.DCMetadata
- * or epub.opf.Metadata, if the prior doesn't exist. Returns undefined
- * in case of failure. This is to support EPUB 2.0, which allows
- * metadata to be nested within dc:metadata:
- * http://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2
- */
-function extractMetadataMember<T extends keyof DCMetadata>(epub: Epub, key: T) {
-  return epub.opf.Metadata?.DCMetadata?.[key] ?? epub.opf.Metadata[key];
-}
-
-/**
- * Extracts meta fields that are found in the XMetadata or Meta arrays
- * within the Metadata object. This is necessary because EPUB allows metadata
- * to be nested under either tag.
- */
-function extractMetaField(epub: Epub, filter: (meta: Metafield) => boolean) {
-  /**
-   * These properties are not marked as optional, but that is a mistake, they
-   * are indeed optional and need to use optional chaining and nullish coalescing
-   */
-  const xMetaFields = epub.opf.Metadata?.XMetadata?.Meta?.filter(filter) ?? [];
-  const metaFields = epub.opf.Metadata?.Meta?.filter(filter) ?? [];
-
-  return [...xMetaFields, ...metaFields];
-}
-
-/**
- * The main function to get the metadata out of the OPF file.
- *
  * For the purposes of this project, the metadata is not _super_ important since
  * these are not being distributed as webpubs, we just need enough info for our
  * reader to display the book correctly.
@@ -88,7 +58,7 @@ function extractMetaField(epub: Epub, filter: (meta: Metafield) => boolean) {
  * - ...less important stuff defined in the Metadata type
  */
 function extractMetadata(epub: Epub): WebpubManifest['metadata'] {
-  const language = extractMetadataMember(epub, 'Language');
+  const language = epub.extractMetadataMember('Language');
   const title = extractTitle(epub);
   const contributors = extractContributors(epub);
 
@@ -105,7 +75,7 @@ function extractMetadata(epub: Epub): WebpubManifest['metadata'] {
  * map of languages and titles.
  */
 function extractTitle(epub: Epub) {
-  const titleMeta = extractMetadataMember(epub, 'Title');
+  const titleMeta = epub.extractMetadataMember('Title');
   return titleMeta?.[0].Data ?? 'Uknown Title';
 }
 
@@ -114,8 +84,7 @@ function extractTitle(epub: Epub) {
  * for each contributor role.
  */
 function extractContributors(epub: Epub): Contributors {
-  const contributorFields = extractMetaField(
-    epub,
+  const contributorFields = epub.extractMetaField(
     (meta: Metafield) =>
       meta.Property === 'dcterms:creator' ||
       meta.Property === 'dcterms:contributor'
@@ -141,8 +110,7 @@ function extractContributors(epub: Epub): Contributors {
       const name = contributor.Data;
       // get the role, which is a sibling xml node. The default is contributor
       const epubRole =
-        extractMetaField(
-          epub,
+        epub.extractMetaField(
           field => field.Property === 'role' && field.ID === contributor.ID
         )?.[0]?.Data ?? 'contributor';
       const webpubRole = roleMap[epubRole] ?? 'contributor';
@@ -155,7 +123,7 @@ function extractContributors(epub: Epub): Contributors {
   );
 
   // the author get pre-extracted for some reason from the metafields
-  const creators = extractMetadataMember(epub, 'Creator');
+  const creators = epub.extractMetadataMember('Creator');
   if (creators.length > 0) {
     if (creators.length > 1) {
       contributors.author = creators.map(creator => creator.Data);
@@ -165,10 +133,6 @@ function extractContributors(epub: Epub): Contributors {
   }
 
   return contributors;
-}
-
-function extractLinks(epub: Epub) {
-  return [];
 }
 
 type LinkWithId = ReadiumLink & { id: string };

@@ -1,13 +1,6 @@
 import fs from 'fs';
 import { Container } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/container';
 import { OPF } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf';
-import {
-  getNcxHref,
-  getOpfPath,
-  parseContainer,
-  parseNcx,
-  parseOpf,
-} from './deserialize';
 import path from 'path';
 import Epub from './Epub';
 import { NCX } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/ncx';
@@ -31,20 +24,20 @@ export default class LocalExplodedEpub extends Epub {
 
   static async build(containerXmlPath: string) {
     const folderPath = containerXmlPath.replace('META-INF/container.xml', '');
-    const container = parseContainer(
+    const container = Epub.parseContainer(
       await LocalExplodedEpub.getFileStr(folderPath, containerXmlPath)
     );
-    const opfPath = path.resolve(folderPath, getOpfPath(container));
-    const opf = await parseOpf(
+    const opfPath = path.resolve(folderPath, Epub.getOpfPath(container));
+    const opf = await Epub.parseOpf(
       await LocalExplodedEpub.getFileStr(folderPath, opfPath)
     );
 
     // the TOC href lives in the opf.Manifest
-    const ncxHref = getNcxHref(opf);
+    const ncxHref = Epub.getNcxHref(opf);
     const ncxStr = ncxHref
       ? await LocalExplodedEpub.getFileStr(folderPath, 'OEBPS/', ncxHref)
       : undefined;
-    const ncx = parseNcx(ncxStr);
+    const ncx = Epub.parseNcx(ncxStr);
 
     return new LocalExplodedEpub(
       containerXmlPath,
