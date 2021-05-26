@@ -7,7 +7,6 @@ import { XML } from 'r2-utils-js/dist/es8-es2017/src/_utils/xml-js-mapper';
 import { DOMParser } from 'xmldom';
 import { EpubVersion } from './types';
 import { Rootfile } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/container-rootfile';
-import xpath from 'xpath';
 
 /**
  * This class represents a complete EPUB. It is abstract
