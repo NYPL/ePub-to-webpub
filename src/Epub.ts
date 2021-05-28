@@ -93,8 +93,12 @@ export default abstract class Epub {
   // directory (ie from OEBPS or OPS)
   abstract getRelativeHref(path: string): string;
   // returns the absolute href to get the file, whether a remote url or a filesystem path
-  abstract getAbsoluteHref(path: string): string;
+  abstract getAbsoluteHref(path: string): string | URL;
   abstract getFileStr(path: string): Promise<string>;
+  // gets the dimensions of an image
+  abstract getImageDimensions(
+    path: string
+  ): Promise<{ width: number; height: number } | undefined>;
 
   ///////////////////
   // METHODS FOR DESERIALIZING STRINGS INTO IN-MEMORY CLASSES

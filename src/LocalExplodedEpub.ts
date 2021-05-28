@@ -4,6 +4,7 @@ import { OPF } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf';
 import path from 'path';
 import Epub from './Epub';
 import { NCX } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/ncx';
+import sizeOf from 'image-size';
 
 /**
  * Extends the Epub class to add support for locally
@@ -86,5 +87,14 @@ export default class LocalExplodedEpub extends Epub {
   getAbsoluteHref(relative: string): string {
     const abs = path.resolve(this.folderPath, this.contentPath, relative);
     return abs;
+  }
+
+  async getImageDimensions(relativePath: string) {
+    const path = this.getAbsoluteHref(relativePath);
+    const { width, height } = sizeOf(path) ?? {};
+    if (typeof width === 'number' && typeof height === 'number') {
+      return { width, height };
+    }
+    return undefined;
   }
 }

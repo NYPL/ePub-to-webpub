@@ -2,9 +2,8 @@ import { Container } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/containe
 import { NCX } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/ncx';
 import { OPF } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf';
 import Epub from './Epub';
-import path from 'path';
 import fetch from 'node-fetch';
-
+import sizeOf from 'image-size';
 export default class RemoteExplodedEpub extends Epub {
   private constructor(
     containerXmlPath: string,
@@ -23,9 +22,9 @@ export default class RemoteExplodedEpub extends Epub {
       await RemoteExplodedEpub.getFileStr(containerXmlPath)
     );
     const rootfile = Epub.getRootfile(container);
-    const opfPath = path.resolve(folderPath, Epub.getOpfPath(container));
+    const opfPath = new URL(Epub.getOpfPath(container), folderPath).toString();
     const opf = await Epub.parseOpf(
-      await RemoteExplodedEpub.getFileStr(folderPath, opfPath)
+      await RemoteExplodedEpub.getFileStr(opfPath)
     );
 
     const ncxHref = Epub.getNcxHref(opf);
@@ -60,7 +59,6 @@ export default class RemoteExplodedEpub extends Epub {
 
   static async getFileStr(...paths: string[]): Promise<string> {
     const url = paths.join('');
-    console.log(url);
     const result = await fetch(url);
     if (!result.ok) {
       throw new Error(`Could not fetch at: ${url}.`);
@@ -78,7 +76,20 @@ export default class RemoteExplodedEpub extends Epub {
   getRelativeHref(relative: string) {
     return `${this.contentPath}${relative}`;
   }
-  getAbsoluteHref(relative: string) {
-    return path.resolve(this.folderPath, this.contentPath, relative);
+  getAbsoluteHref(relative: string): URL {
+    return new URL(relative, new URL(this.contentPath, this.folderPath));
+  }
+  async getImageDimensions(relativePath: string) {
+    const url = this.getAbsoluteHref(relativePath);
+    const response = await fetch(url);
+    if (!response.ok) {
+      throw new Error(`Could not fetch image at: ${url.toString()}`);
+    }
+    const buffer = await response.buffer();
+    const { width, height } = sizeOf(buffer) ?? {};
+    if (typeof width === 'number' && typeof height === 'number') {
+      return { width, height };
+    }
+    return undefined;
   }
 }

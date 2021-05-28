@@ -1,5 +1,5 @@
 import RemoteExplodedEpub from '../RemoteExplodedEpub';
-import { baseUrl } from '../../mocks/constants';
+import { baseUrl } from './constants';
 
 const MobyEpub2Href = `${baseUrl}/samples/moby-epub2-exploded/META-INF/container.xml`;
 const MobyEpub3Href =

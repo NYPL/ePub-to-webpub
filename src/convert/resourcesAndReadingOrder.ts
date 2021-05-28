@@ -1,7 +1,6 @@
 import { Manifest } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-manifest';
 import Epub from '../Epub';
 import { ReadiumLink } from '../WebpubManifest/ReadiumLink';
-import sizeOf from 'image-size';
 
 /**
  * The readingOrder lists the resources of the publication in the reading order
@@ -97,7 +96,7 @@ const manifestToLink = (epub: Epub) => async (
 
   // if it is an image, we should get the height and width
   if (link.type?.includes('image/')) {
-    const dimensions = await getImageDimensions(epub, decodedHref);
+    const dimensions = await epub.getImageDimensions(decodedHref);
     if (dimensions?.width && dimensions.height) {
       link.width = dimensions.width;
       link.height = dimensions.height;
@@ -145,13 +144,4 @@ function addEpub3Properties(
     }
   }
   return link;
-}
-
-/**
- * Gets the image buffer and figures out the dimensions
- */
-async function getImageDimensions(epub: Epub, relativeHref: string) {
-  const pth = epub.getAbsoluteHref(relativeHref);
-  const dimensions = sizeOf(pth);
-  return dimensions;
 }
