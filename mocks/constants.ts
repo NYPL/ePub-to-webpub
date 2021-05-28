@@ -1,1 +1,1 @@
-export const baseUrl = 'http://127.0.0.1:80';
+export const baseUrl = 'http://remote.dev';
