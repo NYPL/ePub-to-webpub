@@ -99,7 +99,6 @@ const manifestToLink = (epub: Epub) => async (
   if (link.type?.includes('image/')) {
     const dimensions = await getImageDimensions(epub, decodedHref);
     if (dimensions?.width && dimensions.height) {
-      console.log(dimensions);
       link.width = dimensions.width;
       link.height = dimensions.height;
     }
