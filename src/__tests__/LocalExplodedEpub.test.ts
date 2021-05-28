@@ -10,7 +10,7 @@ const epub2Container = path.resolve(
 );
 const epub3Container = path.resolve(
   __dirname,
-  '../../samples/moby-epub2-exploded/META-INF/container.xml'
+  '../../samples/moby-epub3-exploded/META-INF/container.xml'
 );
 
 describe('Moby EPUB 2 Exploded', () => {
