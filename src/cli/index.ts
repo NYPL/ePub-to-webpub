@@ -11,41 +11,52 @@ import Epub from '../Epub';
 import RemoteExplodedEpub from '../RemoteExplodedEpub';
 const pkg = require('../../package.json');
 
+const log = (info: string, arg?: string) =>
+  `${chalk.bold(info)}${arg ? chalk.blue(arg) : ''}`;
+
 sade('epub-to-webpub <path> <dest>', true)
   .version(pkg.version)
-  .describe('Convert a local, exploded EPUB to a WebpubManifest JSON file.')
+  .describe(
+    'Convert a local or remote exploded EPUB to a WebpubManifest JSON file.'
+  )
   .example('./moby-dick/META-INF/container.xml ./outputs/manifest.json')
   .action(async (path: string, dest: string) => {
     console.log(
-      chalk.blue(
+      chalk.red(
         `
-###########################
-NYPL Epub to Webpub Converter
-###########################
+███╗   ██╗██╗   ██╗██████╗ ██╗     
+████╗  ██║╚██╗ ██╔╝██╔══██╗██║     
+██╔██╗ ██║ ╚████╔╝ ██████╔╝██║     
+██║╚██╗██║  ╚██╔╝  ██╔═══╝ ██║     
+██║ ╚████║   ██║   ██║     ███████╗
+╚═╝  ╚═══╝   ╚═╝   ╚═╝     ╚══════╝
+`,
+        chalk.red.bold`
+   EPUB to Webpub Converter 
 `
       )
     );
     const spinner = ora('Determining EPUB Type');
     spinner.start();
     const epubClass = getEpubClass(path);
-    spinner.succeed(`Detected type: ${chalk.blue(epubClass.description)}`);
+    spinner.succeed(log('Detected type: ', epubClass.description));
     try {
-      spinner.start(`Reading EPUB from: ${chalk.blue(path)}`);
+      spinner.start(log('Reading EPUB from: ', path));
       const epub = await epubClass.build(path);
       spinner.succeed();
-      spinner.start('Converting to Webpub');
+      spinner.start(log('Converting to Webpub...'));
       const manifest = await epub.webpubManifest;
       spinner.succeed();
-      spinner.start('Formatting manifest...');
+      spinner.start(log('Formatting manifest...'));
       const formatted = prettier.format(JSON.stringify(manifest), {
         parser: 'json',
       });
       spinner.succeed();
-      spinner.start(`Writing Manifest to filesystem at: ${chalk.blue(dest)}`);
+      spinner.start(log('Writing Manifest to filesystem at: ', dest));
       await fs.writeFile(dest, formatted);
       spinner.succeed();
     } catch (e) {
-      spinner.fail('Failed to convert EPUB');
+      spinner.fail(log('Failed to convert EPUB'));
       logError(e);
       process.exit(1);
     }
