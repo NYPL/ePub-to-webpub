@@ -8,6 +8,27 @@ This repository is a converter between EPUBS and Webpubs. It is meant to be depl
 - AxisNow Encrypted EPUB Support (if you pass a license file for decryption)
 - Local EPUB Support (instead of using remote files)
 
+## CLI Example
+
+```bash
+❯ epub-to-webpub ./samples/moby-epub2-exploded/META-INF/container.xml ./outputs/test.json
+
+███╗   ██╗██╗   ██╗██████╗ ██╗     
+████╗  ██║╚██╗ ██╔╝██╔══██╗██║     
+██╔██╗ ██║ ╚████╔╝ ██████╔╝██║     
+██║╚██╗██║  ╚██╔╝  ██╔═══╝ ██║     
+██║ ╚████║   ██║   ██║     ███████╗
+╚═╝  ╚═══╝   ╚═╝   ╚═╝     ╚══════╝
+ 
+   EPUB to Webpub Converter 
+
+✔ Detected type: Local Exploded Epub
+✔ Reading EPUB from: ./samples/moby-epub2-exploded/META-INF/container.xml
+✔ Converting to Webpub...
+✔ Formatting manifest...
+✔ Writing Manifest to filesystem at: ./outputs/test.json
+```
+
 ### Possible Future Features
 
 - CLI for local conversion
