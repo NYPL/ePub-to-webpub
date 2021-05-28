@@ -8,18 +8,32 @@
     "src"
   ],
   "engines": {
-    "node": ">=10"
+    "node": ">=12"
   },
   "scripts": {
-    "start": "tsdx watch",
-    "start:run": "tsdx watch --onSuccess 'node dist/index.js'",
-    "build": "tsdx build",
-    "test": "tsdx test --passWithNoTests",
-    "test:watch": "tsdx test --watchAll",
-    "lint": "tsdx lint",
-    "prepare": "tsdx build",
-    "size": "size-limit",
-    "analyze": "size-limit --why"
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "lint": "eslint src/**",
+    "prepare": "tsup-node",
+    "build": "tsup-node",
+    "start": "tsup-node --watch"
+  },
+  "bin": {
+    "epub-to-webpub": "./dist/cli.js"
+  },
+  "tsup": {
+    "splitting": false,
+    "sourcemap": true,
+    "clean": true,
+    "dts": true,
+    "format": [
+      "esm",
+      "cjs"
+    ],
+    "entryPoints": [
+      "src/index.ts",
+      "src/cli.ts"
+    ]
   },
   "peerDependencies": {
     "react": ">=16"
@@ -37,31 +51,30 @@
   },
   "name": "epub-to-webpub",
   "author": "kristojorg",
-  "module": "dist/epub-to-webpub.esm.js",
-  "size-limit": [
-    {
-      "path": "dist/epub-to-webpub.cjs.production.min.js",
-      "limit": "10 KB"
-    },
-    {
-      "path": "dist/epub-to-webpub.esm.js",
-      "limit": "10 KB"
-    }
-  ],
+  "module": "dist/index.mjs",
   "devDependencies": {
-    "@size-limit/preset-small-lib": "^4.10.2",
+    "@size-limit/preset-small-lib": "^4.11.0",
     "@types/node-fetch": "^2.5.10",
     "@types/react": "^17.0.3",
     "@types/react-dom": "^17.0.3",
     "@types/xml2js": "^0.4.8",
+    "@typescript-eslint/eslint-plugin": "^4.25.0",
+    "@typescript-eslint/parser": "^4.25.0",
+    "esbuild-jest": "^0.5.0",
+    "eslint": "^7.27.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-config-react-app": "^6.0.0",
+    "eslint-plugin-prettier": "^3.4.0",
     "file-type": "^16.5.0",
     "husky": "^6.0.0",
+    "jest": "^27.0.1",
+    "jest-watch-typeahead": "^0.6.4",
     "msw": "^0.28.2",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "size-limit": "^4.10.2",
-    "tsdx": "^0.14.1",
+    "size-limit": "^4.11.0",
     "tslib": "^2.2.0",
+    "tsup": "^4.11.1",
     "typescript": "^4.2.4"
   },
   "dependencies": {

@@ -1,4 +1,4 @@
-export default {
+const mobyEpub3Manifest = {
   '@context': 'https://readium.org/webpub-manifest/context.jsonld',
   metadata: {
     '@type': 'http://schema.org/Book',
@@ -1225,3 +1225,5 @@ export default {
     },
   ],
 };
+
+export default mobyEpub3Manifest;
