@@ -11,6 +11,7 @@ import sizeOf from 'image-size';
  * sourced, exploded EPUBs.
  */
 export default class LocalExplodedEpub extends Epub {
+  static description = 'Local Exploded Epub';
   private constructor(
     containerXmlPath: string,
     folderPath: string,
@@ -25,7 +26,7 @@ export default class LocalExplodedEpub extends Epub {
   static async build(containerXmlPath: string) {
     const folderPath = containerXmlPath.replace(this.CONTAINER_PATH, '');
     const container = Epub.parseContainer(
-      await LocalExplodedEpub.getFileStr(folderPath, containerXmlPath)
+      await LocalExplodedEpub.getFileStr(containerXmlPath)
     );
     const rootfile = Epub.getRootfile(container);
     const opfPath = path.resolve(folderPath, Epub.getOpfPath(container));

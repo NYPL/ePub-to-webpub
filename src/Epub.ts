@@ -36,6 +36,7 @@ import { epubToManifest } from './convert';
 export default abstract class Epub {
   static NCX_MEDIA_TYPE = 'application/x-dtbncx+xml';
   static CONTAINER_PATH = 'META-INF/container.xml';
+  static description = 'Generic Epub';
 
   constructor(
     private readonly containerXmlPath: string,
@@ -169,7 +170,7 @@ export default abstract class Epub {
    */
   static getNcxHref(opf: OPF) {
     return opf.Manifest.find(
-      item => item.ID === 'ncx' && item.MediaType === Epub.NCX_MEDIA_TYPE
+      (item) => item.ID === 'ncx' && item.MediaType === Epub.NCX_MEDIA_TYPE
     )?.HrefDecoded;
   }
 
@@ -181,7 +182,7 @@ export default abstract class Epub {
   }
 
   static getNavDocHref(opf: OPF): string | undefined {
-    const navDocItem = opf.Manifest.find(item =>
+    const navDocItem = opf.Manifest.find((item) =>
       Epub.parseSpaceSeparatedString(item.Properties).includes('nav')
     );
     return navDocItem?.HrefDecoded;
@@ -199,8 +200,8 @@ export default abstract class Epub {
       str
         ?.trim()
         .split(' ')
-        .map(role => role.trim())
-        .filter(role => role.length > 0) ?? []
+        .map((role) => role.trim())
+        .filter((role) => role.length > 0) ?? []
     );
   }
 

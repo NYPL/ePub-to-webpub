@@ -5,6 +5,8 @@ import Epub from './Epub';
 import fetch from 'node-fetch';
 import sizeOf from 'image-size';
 export default class RemoteExplodedEpub extends Epub {
+  static description = 'Remote Exploded Epub';
+
   private constructor(
     containerXmlPath: string,
     folderPath: string,

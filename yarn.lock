@@ -769,6 +769,11 @@
   "resolved" "https://registry.npmjs.org/@types/json5/-/json5-0.0.29.tgz"
   "version" "0.0.29"
 
+"@types/mri@*":
+  "integrity" "sha512-fMl88ZoZXOB7VKazJ6wUMpZc9QIn+jcigSFRf2K/rrw4DcXn+/uGxlWX8DDlcE7JkwgIZ7BDH+JgxZPlc/Ap3g=="
+  "resolved" "https://registry.npmjs.org/@types/mri/-/mri-1.1.0.tgz"
+  "version" "1.1.0"
+
 "@types/node-fetch@^2.5.10":
   "integrity" "sha512-IpkX0AasN44hgEad0gEF/V6EgR5n69VEqPEgnmoM8GsIGro3PowbWs4tR6IhxUTyPLpOn+fiGG6nrQhcmoCuIQ=="
   "resolved" "https://registry.npmjs.org/@types/node-fetch/-/node-fetch-2.5.10.tgz"
@@ -825,6 +830,13 @@
   dependencies:
     "@types/node" "*"
     "safe-buffer" "*"
+
+"@types/sade@^1.7.2":
+  "integrity" "sha512-qVHZ70gLk2tCAqRanVOBVKM8og7eBhnWx1cdHMj8J3t4QF+PzIS9+pzZWZEx9ghsO1DDeGOTgyq5aQd5Bt/2dw=="
+  "resolved" "https://registry.npmjs.org/@types/sade/-/sade-1.7.2.tgz"
+  "version" "1.7.2"
+  dependencies:
+    "@types/mri" "*"
 
 "@types/scheduler@*":
   "integrity" "sha512-EaCxbanVeyxDRTQBkdLb3Bvl/HK7PBK6UJjsSixB0iHKoWxE5uu2Q/DgtpOhPIojN0Zl1whvOd7PoHs2P0s5eA=="
@@ -1923,7 +1935,7 @@
     "escape-string-regexp" "^1.0.5"
     "supports-color" "^5.3.0"
 
-"chalk@^4.0.0", "chalk@^4.1.0":
+"chalk@^4.0.0", "chalk@^4.1.0", "chalk@^4.1.1":
   "integrity" "sha512-diHzdDKxcU+bAsUboHLPEDQiw0qEe0qd7SYUn3HgcFlWgbDcfLGswOHYeGrHKzG9z6UYf01d9VFMfZxPM1xZSg=="
   "resolved" "https://registry.npmjs.org/chalk/-/chalk-4.1.1.tgz"
   "version" "4.1.1"
@@ -5297,6 +5309,11 @@
     "rimraf" "^2.5.4"
     "run-queue" "^1.0.3"
 
+"mri@^1.1.0":
+  "integrity" "sha512-oi1b3MfbyGa7FJMP9GmLTttni5JoICpYBRlq+x5V16fZbLsnL9N3wFqqIm/nIG43FjUFkFh9Epzp/kzUGUnJxQ=="
+  "resolved" "https://registry.npmjs.org/mri/-/mri-1.1.6.tgz"
+  "version" "1.1.6"
+
 "ms@^2.1.1", "ms@2.1.2":
   "integrity" "sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w=="
   "resolved" "https://registry.npmjs.org/ms/-/ms-2.1.2.tgz"
@@ -6766,6 +6783,13 @@
   "version" "6.6.7"
   dependencies:
     "tslib" "^1.9.0"
+
+"sade@^1.7.4":
+  "integrity" "sha512-y5yauMD93rX840MwUJr7C1ysLFBgMspsdTo4UVrDg3fXDvtwOyIqykhVAAm6fk/3au77773itJStObgK+LKaiA=="
+  "resolved" "https://registry.npmjs.org/sade/-/sade-1.7.4.tgz"
+  "version" "1.7.4"
+  dependencies:
+    "mri" "^1.1.0"
 
 "safe-buffer@*", "safe-buffer@^5.0.1", "safe-buffer@^5.1.0", "safe-buffer@^5.1.1", "safe-buffer@^5.1.2", "safe-buffer@^5.2.0", "safe-buffer@~5.2.0":
   "integrity" "sha512-rp3So07KcdmmKbGvgaNxQSJr7bGVSVk5S9Eq1F+ppbRo70+YeaDxkw5Dd8NPN+GD6bjnYm2VuPuCXmpuYvmCXQ=="
