@@ -1,16 +1,23 @@
 import path from 'path';
-import { localExploded } from '..';
+import LocalExplodedEpub from '../LocalExplodedEpub';
 import mobyEpub2Manifest from './stubs/moby-epub2';
 import mobyEpub3Manifest from './stubs/moby-epub3';
 import { expectSelectively, expectSelectivelyArr } from './utils';
 
+const epub2Container = path.resolve(
+  __dirname,
+  '../../samples/moby-epub2-exploded/META-INF/container.xml'
+);
+const epub3Container = path.resolve(
+  __dirname,
+  '../../samples/moby-epub2-exploded/META-INF/container.xml'
+);
+
 describe('Moby EPUB 2 Exploded', () => {
   async function getManifest() {
-    const containerXmlPath = path.resolve(
-      __dirname,
-      '../../samples/moby-epub2-exploded/META-INF/container.xml'
-    );
-    return await localExploded(containerXmlPath);
+    const epub = await LocalExplodedEpub.build(epub2Container);
+    const manifest = await epub.webpubManifest;
+    return manifest;
   }
 
   it('context', async () => {
@@ -62,11 +69,9 @@ describe('Moby EPUB 2 Exploded', () => {
 
 describe('Moby EPUB 3 Exploded', () => {
   async function getManifest() {
-    const containerXmlPath = path.resolve(
-      __dirname,
-      '../../samples/moby-epub3-exploded/META-INF/container.xml'
-    );
-    return await localExploded(containerXmlPath);
+    const epub = await LocalExplodedEpub.build(epub3Container);
+    const manifest = await epub.webpubManifest;
+    return manifest;
   }
 
   it('context', async () => {
