@@ -27,6 +27,7 @@ This repository is a converter between EPUBS and Webpubs. It is meant to be depl
 ✔ Converting to Webpub...
 ✔ Formatting manifest...
 ✔ Writing Manifest to filesystem at: ./outputs/test.json
+✔ Success!
 ```
 
 ### Possible Future Features

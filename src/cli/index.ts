@@ -60,6 +60,8 @@ sade('epub-to-webpub <path> <dest>', true)
       logError(e);
       process.exit(1);
     }
+    spinner.start(log('Success!'));
+    spinner.succeed();
   })
   .parse(process.argv);
 
