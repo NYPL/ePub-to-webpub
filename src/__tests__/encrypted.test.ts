@@ -1,9 +1,20 @@
 import { RemoteExplodedEpub } from '..';
 import { baseUrl } from './constants';
 import Decryptor from '@nypl-simplified-packages/axisnow-access-control-web';
+import LocalExplodedEpub from '../LocalExplodedEpub';
+import path from 'path';
 
 const encryptedHref = `${baseUrl}/samples/axisnow/encrypted/META-INF/container.xml`;
 const decryptedHref = `${baseUrl}/samples/axisnow/decrypted/META-INF/container.xml`;
+
+const decryptedPath = path.resolve(
+  __dirname,
+  '../../samples/axisnow/decrypted/META-INF/container.xml'
+);
+const encryptedPath = path.resolve(
+  __dirname,
+  '../../samples/axisnow/encrypted/META-INF/container.xml'
+);
 
 // Parameters for our sample axisnow encrypted book
 const parameters = {
@@ -16,14 +27,14 @@ const parameters = {
  * Therefore it is not a great unit test and is likely to be flakey. It is
  * useful during development, however.
  */
-describe.skip('Encrypted Manifest', () => {
+describe('Encrypted Manifest', () => {
   it('Local - Equals the Decrypted version', async () => {
     const decryptor = await Decryptor?.createDecryptor(parameters);
-    const encryptedEpub = await RemoteExplodedEpub.build(encryptedHref, {
+    const encryptedEpub = await LocalExplodedEpub.build(encryptedPath, {
       decryptor,
     });
     const encryptedManifest = await encryptedEpub.webpubManifest;
-    const decryptedEpub = await RemoteExplodedEpub.build(decryptedHref);
+    const decryptedEpub = await LocalExplodedEpub.build(decryptedPath);
     const decryptedManifest = await decryptedEpub.webpubManifest;
 
     expect(encryptedManifest).toEqual(decryptedManifest);

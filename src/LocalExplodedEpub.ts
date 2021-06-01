@@ -69,7 +69,8 @@ export default class LocalExplodedEpub extends Epub {
       container,
       opf,
       ncx,
-      navDoc
+      navDoc,
+      decryptor
     ) as Epub;
   }
   /**
@@ -83,7 +84,7 @@ export default class LocalExplodedEpub extends Epub {
     const buffer = fs.readFileSync(fullPath, null);
     return Promise.resolve(buffer);
   }
-  async getArrayBuffer(...paths: []): Promise<ArrayBuffer> {
+  async getArrayBuffer(...paths: string[]): Promise<ArrayBuffer> {
     return LocalExplodedEpub.getArrayBuffer(...paths);
   }
 
@@ -110,7 +111,17 @@ export default class LocalExplodedEpub extends Epub {
 
   async getImageDimensions(relativePath: string) {
     const path = this.getAbsoluteHref(relativePath);
-    const { width, height } = sizeOf(path) ?? {};
+    /**
+     * If the decryptor is defined, we read the file as a buffer, decrypt it
+     * and pass that to sizeOf. Otherwise we just pass the path and let it
+     * read the file internally.
+     */
+    let arg: string | Buffer = path;
+    if (this.decryptor) {
+      const buffer = await this.getArrayBuffer(path);
+      arg = Buffer.from(await Epub.decryptAb(buffer, this.decryptor));
+    }
+    const { width, height } = sizeOf(arg) ?? {};
     if (typeof width === 'number' && typeof height === 'number') {
       return { width, height };
     }
