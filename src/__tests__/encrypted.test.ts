@@ -27,7 +27,7 @@ const parameters = {
  * Therefore it is not a great unit test and is likely to be flakey. It is
  * useful during development, however.
  */
-describe('Encrypted Manifest', () => {
+describe.skip('Encrypted Manifest', () => {
   it('Local - Equals the Decrypted version', async () => {
     const decryptor = await Decryptor?.createDecryptor(parameters);
     const encryptedEpub = await LocalExplodedEpub.build(encryptedPath, {
