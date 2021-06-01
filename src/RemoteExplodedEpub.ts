@@ -4,6 +4,7 @@ import { OPF } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf';
 import Epub from './Epub';
 import fetch from 'node-fetch';
 import sizeOf from 'image-size';
+import { Decryptor, EpubOptions } from './types';
 export default class RemoteExplodedEpub extends Epub {
   static description = 'Remote Exploded Epub';
 
@@ -13,12 +14,17 @@ export default class RemoteExplodedEpub extends Epub {
     container: Container,
     opf: OPF,
     ncx: NCX | undefined,
-    navDoc: Document | undefined
+    navDoc: Document | undefined,
+    decryptor?: Decryptor
   ) {
-    super(containerXmlPath, folderPath, container, opf, ncx, navDoc);
+    super(containerXmlPath, folderPath, container, opf, ncx, navDoc, decryptor);
   }
 
-  static async build(containerXmlPath: string) {
+  static async build(
+    containerXmlPath: string,
+    options: EpubOptions = { decryptor: undefined }
+  ) {
+    const { decryptor } = options;
     const folderPath = containerXmlPath.replace(this.CONTAINER_PATH, '');
     const container = Epub.parseContainer(
       await RemoteExplodedEpub.getFileStr(containerXmlPath)
@@ -30,23 +36,25 @@ export default class RemoteExplodedEpub extends Epub {
     );
 
     const ncxHref = Epub.getNcxHref(opf);
-    const ncxStr = ncxHref
-      ? await RemoteExplodedEpub.getFileStr(
+    const ncxBuffer = ncxHref
+      ? await RemoteExplodedEpub.getArrayBuffer(
           folderPath,
           Epub.getContentPath(rootfile, opf),
           ncxHref
         )
       : undefined;
+    const ncxStr = await Epub.decryptStr(ncxBuffer, decryptor);
     const ncx = Epub.parseNcx(ncxStr);
 
     const navDocHref = Epub.getNavDocHref(opf);
-    const navDocStr = navDocHref
-      ? await RemoteExplodedEpub.getFileStr(
+    const navDocBuffer = navDocHref
+      ? await RemoteExplodedEpub.getArrayBuffer(
           folderPath,
           Epub.getContentPath(rootfile, opf),
           navDocHref
         )
       : undefined;
+    const navDocStr = await Epub.decryptStr(navDocBuffer, decryptor);
     const navDoc = Epub.parseNavDoc(navDocStr);
 
     return new RemoteExplodedEpub(
@@ -55,16 +63,34 @@ export default class RemoteExplodedEpub extends Epub {
       container,
       opf,
       ncx,
-      navDoc
+      navDoc,
+      decryptor
     ) as Epub;
+  }
+
+  static async getArrayBuffer(...paths: string[]): Promise<ArrayBuffer> {
+    const url = paths.join('');
+    const result = await RemoteExplodedEpub.fetch(url);
+    return await result.arrayBuffer();
+  }
+  async getArrayBuffer(...paths: []): Promise<ArrayBuffer> {
+    return RemoteExplodedEpub.getArrayBuffer(...paths);
+  }
+
+  /**
+   * Fetch a file and throw an error if the response is not ok.
+   */
+  static async fetch(url: string): Promise<ReturnType<typeof fetch>> {
+    const result = await fetch(url);
+    if (!result.ok) {
+      throw new Error(`Could not fetch at: ${url}`);
+    }
+    return result;
   }
 
   static async getFileStr(...paths: string[]): Promise<string> {
     const url = paths.join('');
-    const result = await fetch(url);
-    if (!result.ok) {
-      throw new Error(`Could not fetch at: ${url}.`);
-    }
+    const result = await RemoteExplodedEpub.fetch(url);
     return await result.text();
   }
   getFileStr(path: string) {
@@ -88,7 +114,8 @@ export default class RemoteExplodedEpub extends Epub {
       throw new Error(`Could not fetch image at: ${url.toString()}`);
     }
     const buffer = await response.buffer();
-    const { width, height } = sizeOf(buffer) ?? {};
+    const decrypted = await Epub.decryptAb(buffer, this.decryptor);
+    const { width, height } = sizeOf(Buffer.from(decrypted)) ?? {};
     if (typeof width === 'number' && typeof height === 'number') {
       return { width, height };
     }

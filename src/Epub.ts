@@ -5,7 +5,7 @@ import { DCMetadata } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-dc-
 import { Metafield } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-metafield';
 import { XML } from 'r2-utils-js/dist/es8-es2017/src/_utils/xml-js-mapper';
 import { DOMParser } from 'xmldom';
-import { EpubVersion } from './types';
+import { Decryptor, EpubOptions, EpubVersion } from './types';
 import { Rootfile } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/container-rootfile';
 import { WebpubManifest } from './WebpubManifestTypes/WebpubManifest';
 import { epubToManifest } from './convert';
@@ -45,10 +45,14 @@ export default abstract class Epub {
     public readonly opf: OPF,
     // EPUB 2 uses NCX, EPUB 3 uses NavDoc
     public readonly ncx: NCX | undefined,
-    public readonly navDoc: Document | undefined
+    public readonly navDoc: Document | undefined,
+    public readonly decryptor?: Decryptor
   ) {}
 
-  public static async build(containerXmlPath: string): Promise<Epub> {
+  public static async build(
+    containerXmlPath: string,
+    options?: EpubOptions
+  ): Promise<Epub> {
     throw new Error(
       'The `build` method must be overrridden by the concrete class extending Epub.'
     );
@@ -96,13 +100,14 @@ export default abstract class Epub {
   // returns the absolute href to get the file, whether a remote url or a filesystem path
   abstract getAbsoluteHref(path: string): string | URL;
   abstract getFileStr(path: string): Promise<string>;
+  abstract getArrayBuffer(path: string): Promise<ArrayBuffer>;
   // gets the dimensions of an image
   abstract getImageDimensions(
     path: string
   ): Promise<{ width: number; height: number } | undefined>;
 
   ///////////////////
-  // METHODS FOR DESERIALIZING STRINGS INTO IN-MEMORY CLASSES
+  // METHODS FOR DESERIALIZING VALUES INTO IN-MEMORY CLASSES
   ///////////////////
 
   /**
@@ -203,6 +208,27 @@ export default abstract class Epub {
         .map((role) => role.trim())
         .filter((role) => role.length > 0) ?? []
     );
+  }
+
+  /**
+   * Takes a maybe file and a maybe decryptor and returns
+   * a string
+   */
+  static async decryptStr(
+    buffer: ArrayBuffer | undefined,
+    decryptor: Decryptor | undefined
+  ): Promise<string | undefined> {
+    if (!buffer) return undefined;
+    if (!decryptor) return new TextDecoder('utf-8').decode(buffer);
+    return await decryptor.decryptStr(new Uint8Array(buffer));
+  }
+
+  static async decryptAb(
+    buffer: ArrayBuffer,
+    decryptor: Decryptor | undefined
+  ): Promise<ArrayBuffer> {
+    if (!decryptor) return buffer;
+    return await decryptor.decrypt(new Uint8Array(buffer));
   }
 
   ///////////////////
