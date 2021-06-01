@@ -4,7 +4,8 @@ import { OPF } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf';
 import Epub from './Epub';
 import fetch from 'node-fetch';
 import sizeOf from 'image-size';
-import { Decryptor, EpubOptions } from './types';
+import { EpubOptions } from './types';
+import Decryptor from '@nypl-simplified-packages/axisnow-access-control-web';
 export default class RemoteExplodedEpub extends Epub {
   static description = 'Remote Exploded Epub';
 

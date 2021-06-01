@@ -17,7 +17,19 @@ const parameters = {
  * useful during development, however.
  */
 describe.skip('Encrypted Manifest', () => {
-  it('Equals the Decrypted version', async () => {
+  it('Local - Equals the Decrypted version', async () => {
+    const decryptor = await Decryptor?.createDecryptor(parameters);
+    const encryptedEpub = await RemoteExplodedEpub.build(encryptedHref, {
+      decryptor,
+    });
+    const encryptedManifest = await encryptedEpub.webpubManifest;
+    const decryptedEpub = await RemoteExplodedEpub.build(decryptedHref);
+    const decryptedManifest = await decryptedEpub.webpubManifest;
+
+    expect(encryptedManifest).toEqual(decryptedManifest);
+  });
+
+  it('Remote - Equals the Decrypted version', async () => {
     const decryptor = await Decryptor?.createDecryptor(parameters);
     const encryptedEpub = await RemoteExplodedEpub.build(encryptedHref, {
       decryptor,
