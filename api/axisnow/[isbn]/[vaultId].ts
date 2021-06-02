@@ -1,8 +1,8 @@
 /* eslint-disable camelcase */
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import Decryptor from '@nypl-simplified-packages/axisnow-access-control-web';
-import RemoteExplodedEpub from '../../../RemoteExplodedEpub';
-import { validateParam } from '../../../utils';
+import RemoteExplodedEpub from '../../../src/RemoteExplodedEpub';
+import { validateParam } from '../../../src/utils';
 
 /**
  * This is a handler for Open eBooks Axisnow encrypted EPUBS.
