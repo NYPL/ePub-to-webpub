@@ -17,13 +17,23 @@ export default class LocalExplodedEpub extends Epub {
   private constructor(
     containerXmlPath: string,
     folderPath: string,
+    opfPath: string,
     container: Container,
     opf: OPF,
     ncx: NCX | undefined,
     navDoc: Document | undefined,
     decryptor?: Decryptor
   ) {
-    super(containerXmlPath, folderPath, container, opf, ncx, navDoc, decryptor);
+    super(
+      containerXmlPath,
+      folderPath,
+      opfPath,
+      container,
+      opf,
+      ncx,
+      navDoc,
+      decryptor
+    );
   }
 
   static async build(
@@ -66,6 +76,7 @@ export default class LocalExplodedEpub extends Epub {
     return new LocalExplodedEpub(
       containerXmlPath,
       folderPath,
+      opfPath,
       container,
       opf,
       ncx,
@@ -79,7 +90,7 @@ export default class LocalExplodedEpub extends Epub {
    * enforce a static abstract method in the abstract Epub class sadly.
    */
 
-  static async getArrayBuffer(...paths: string[]): Promise<ArrayBuffer> {
+  static async getArrayBuffer(path: string): Promise<ArrayBuffer> {
     const fullPath = path.resolve(...paths);
     const buffer = fs.readFileSync(fullPath, null);
     return Promise.resolve(buffer);
@@ -100,17 +111,17 @@ export default class LocalExplodedEpub extends Epub {
     );
   }
 
-  getRelativeHref(relative: string): string {
-    return `${this.contentPath}${relative}`;
+  resolvePath(from: string, to: string): string {
+    return path.resolve(from, to);
+  }
+  resolveRelativePath(from: string, to: string): string {
+    return this.resolvePath(from, to).replace(this.folderPath, '');
   }
 
-  getAbsoluteHref(relative: string): string {
-    const abs = path.resolve(this.folderPath, this.contentPath, relative);
-    return abs;
-  }
-
-  async getImageDimensions(relativePath: string) {
-    const path = this.getAbsoluteHref(relativePath);
+  /**
+   * You must pass this function the absolute path to the image
+   */
+  async getImageDimensions(path: string) {
     /**
      * If the decryptor is defined, we read the file as a buffer, decrypt it
      * and pass that to sizeOf. Otherwise we just pass the path and let it

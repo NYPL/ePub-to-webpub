@@ -12,13 +12,24 @@ export default class RemoteExplodedEpub extends Epub {
   private constructor(
     containerXmlPath: string,
     folderPath: string,
+    // used to resolve items relative to the opf file
+    opfPath: string,
     container: Container,
     opf: OPF,
     ncx: NCX | undefined,
     navDoc: Document | undefined,
     decryptor?: Decryptor
   ) {
-    super(containerXmlPath, folderPath, container, opf, ncx, navDoc, decryptor);
+    super(
+      containerXmlPath,
+      folderPath,
+      opfPath,
+      container,
+      opf,
+      ncx,
+      navDoc,
+      decryptor
+    );
   }
 
   static async build(
@@ -30,30 +41,28 @@ export default class RemoteExplodedEpub extends Epub {
     const container = Epub.parseContainer(
       await RemoteExplodedEpub.getFileStr(containerXmlPath)
     );
-    const rootfile = Epub.getRootfile(container);
-    const opfPath = new URL(Epub.getOpfPath(container), folderPath).toString();
+    const relativeOpfPath = Epub.getOpfPath(container);
+    const opfHref = RemoteExplodedEpub.resolvePath(folderPath, relativeOpfPath);
     const opf = await Epub.parseOpf(
-      await RemoteExplodedEpub.getFileStr(opfPath)
+      await RemoteExplodedEpub.getFileStr(opfHref)
     );
 
-    const ncxHref = Epub.getNcxHref(opf);
+    const relativeNcxPath = Epub.getNcxHref(opf);
+    const ncxHref = relativeNcxPath
+      ? RemoteExplodedEpub.resolvePath(opfHref, relativeNcxPath)
+      : undefined;
     const ncxBuffer = ncxHref
-      ? await RemoteExplodedEpub.getArrayBuffer(
-          folderPath,
-          Epub.getContentPath(rootfile, opf),
-          ncxHref
-        )
+      ? await RemoteExplodedEpub.getArrayBuffer(ncxHref)
       : undefined;
     const ncxStr = await Epub.decryptStr(ncxBuffer, decryptor);
     const ncx = Epub.parseNcx(ncxStr);
 
-    const navDocHref = Epub.getNavDocHref(opf);
+    const relativeNavDocPath = Epub.getNavDocHref(opf);
+    const navDocHref = relativeNavDocPath
+      ? RemoteExplodedEpub.resolvePath(opfHref, relativeNavDocPath)
+      : undefined;
     const navDocBuffer = navDocHref
-      ? await RemoteExplodedEpub.getArrayBuffer(
-          folderPath,
-          Epub.getContentPath(rootfile, opf),
-          navDocHref
-        )
+      ? await RemoteExplodedEpub.getArrayBuffer(navDocHref)
       : undefined;
     const navDocStr = await Epub.decryptStr(navDocBuffer, decryptor);
     const navDoc = Epub.parseNavDoc(navDocStr);
@@ -61,6 +70,7 @@ export default class RemoteExplodedEpub extends Epub {
     return new RemoteExplodedEpub(
       containerXmlPath,
       folderPath,
+      opfHref,
       container,
       opf,
       ncx,
@@ -69,13 +79,12 @@ export default class RemoteExplodedEpub extends Epub {
     ) as Epub;
   }
 
-  static async getArrayBuffer(...paths: string[]): Promise<ArrayBuffer> {
-    const url = paths.join('');
+  static async getArrayBuffer(url: string): Promise<ArrayBuffer> {
     const result = await RemoteExplodedEpub.fetch(url);
     return await result.arrayBuffer();
   }
-  async getArrayBuffer(...paths: []): Promise<ArrayBuffer> {
-    return RemoteExplodedEpub.getArrayBuffer(...paths);
+  async getArrayBuffer(url: string): Promise<ArrayBuffer> {
+    return RemoteExplodedEpub.getArrayBuffer(url);
   }
 
   /**
@@ -89,27 +98,29 @@ export default class RemoteExplodedEpub extends Epub {
     return result;
   }
 
-  static async getFileStr(...paths: string[]): Promise<string> {
-    const url = paths.join('');
+  static async getFileStr(url: string): Promise<string> {
     const result = await RemoteExplodedEpub.fetch(url);
     return await result.text();
   }
-  getFileStr(path: string) {
-    return RemoteExplodedEpub.getFileStr(
+  getFileStr(url: string) {
+    return RemoteExplodedEpub.getFileStr(url);
+  }
+
+  static resolvePath(from: string, to: string): string {
+    return new URL(to, from).toString();
+  }
+  resolvePath(from: string, to: string): string {
+    return RemoteExplodedEpub.resolvePath(from, to);
+  }
+  resolveRelativePath(from: string, to: string): string {
+    return RemoteExplodedEpub.resolvePath(from, to).replace(
       this.folderPath,
-      this.contentPath,
-      path
+      ''
     );
   }
 
-  getRelativeHref(relative: string) {
-    return `${this.contentPath}${relative}`;
-  }
-  getAbsoluteHref(relative: string): URL {
-    return new URL(relative, new URL(this.contentPath, this.folderPath));
-  }
   async getImageDimensions(relativePath: string) {
-    const url = this.getAbsoluteHref(relativePath);
+    const url = this.resolvePath(this.folderPath, relativePath);
     const response = await fetch(url);
     if (!response.ok) {
       throw new Error(`Could not fetch image at: ${url.toString()}`);

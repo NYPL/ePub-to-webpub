@@ -20,16 +20,6 @@ import Decryptor from '@nypl-simplified-packages/axisnow-access-control-web';
  *  - Remote (external server) exploded EPUB
  *  - Remote packaged EPUB
  *
- * For each of these cases we should only need to implement
- * the following functions:
- *  - build
- *  - getFileStr
- *  - getFullHref
- * Then, the consumer (in this case construct-manifest) doesn't
- * need to worry about how to source the contents, that's abstracted
- * away. It just uses the properties and methods on the Epub class
- * to build the manifest.
- *
  * This class includes utilites used to parse the string file values
  * into in-memory representations and to extract values from the various
  * data structures. They will be used by all subclasses.
@@ -42,11 +32,14 @@ export default abstract class Epub {
   constructor(
     private readonly containerXmlPath: string,
     public readonly folderPath: string,
+    // used to resolve items relative to the opf file
+    public readonly opfPath: string,
     public readonly container: Container,
     public readonly opf: OPF,
     // EPUB 2 uses NCX, EPUB 3 uses NavDoc
     public readonly ncx: NCX | undefined,
     public readonly navDoc: Document | undefined,
+    // pass a decryptor to have all files except container.xml and opf run through it
     public readonly decryptor?: Decryptor
   ) {}
 
@@ -95,11 +88,10 @@ export default abstract class Epub {
   // ABSTRACT METHODS THAT DIFFER BY SUBCLASS
   ///////////////////
 
-  // returns an href relative to the folder root given one relative to the content
-  // directory (ie from OEBPS or OPS)
-  abstract getRelativeHref(path: string): string;
-  // returns the absolute href to get the file, whether a remote url or a filesystem path
-  abstract getAbsoluteHref(path: string): string | URL;
+  // resolves a url relative to another
+  abstract resolvePath(from: string, to: string): string;
+  // similar to resolvePath, but returns a path relative to epub folder.
+  abstract resolveRelativePath(from: string, to: string): string;
   abstract getFileStr(path: string): Promise<string>;
   abstract getArrayBuffer(path: string): Promise<ArrayBuffer>;
   // gets the dimensions of an image
