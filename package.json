@@ -34,7 +34,8 @@
       "src/index.ts",
       "src/cli/index.ts",
       "src/api/[conainerXml].ts",
-      "src/api/axisnow/[isbn]/[vaultId].ts"
+      "src/api/axisnow/[isbn]/[vaultId].ts",
+      "src/api/hello.ts"
     ]
   },
   "peerDependencies": {
