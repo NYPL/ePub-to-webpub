@@ -1,5 +1,5 @@
 import path from 'path';
-import LocalExplodedEpub from '../LocalExplodedEpub';
+import Epub from '../Epub';
 import mobyEpub2Manifest from './stubs/moby-epub2';
 import mobyEpub3Manifest from './stubs/moby-epub3';
 import { expectSelectively, expectSelectivelyArr } from './utils';
@@ -15,7 +15,7 @@ const epub3Container = path.resolve(
 
 describe('Moby EPUB 2 Exploded', () => {
   async function getManifest() {
-    const epub = await LocalExplodedEpub.build(epub2Container);
+    const epub = await Epub.build(epub2Container);
     const manifest = await epub.webpubManifest;
     return manifest;
   }
@@ -69,7 +69,7 @@ describe('Moby EPUB 2 Exploded', () => {
 
 describe('Moby EPUB 3 Exploded', () => {
   async function getManifest() {
-    const epub = await LocalExplodedEpub.build(epub3Container);
+    const epub = await Epub.build(epub3Container);
     const manifest = await epub.webpubManifest;
     return manifest;
   }

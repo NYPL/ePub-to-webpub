@@ -1,4 +1,4 @@
-import RemoteExplodedEpub from '../RemoteExplodedEpub';
+import Epub from '../Epub';
 import { baseUrl } from './constants';
 import mobyEpub2Manifest from './stubs/moby-epub2';
 import mobyEpub3Manifest from './stubs/moby-epub3';
@@ -9,7 +9,7 @@ const MobyEpub3Href = `${baseUrl}/samples/moby-epub3-exploded/META-INF/container
 
 describe('Moby EPUB 2 Exploded', () => {
   async function getManifest() {
-    const epub = await RemoteExplodedEpub.build(MobyEpub2Href);
+    const epub = await Epub.build(MobyEpub2Href);
     const manifest = await epub.webpubManifest;
     return manifest;
   }

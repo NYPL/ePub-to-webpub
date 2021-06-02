@@ -10,6 +10,7 @@ import { Rootfile } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/container
 import { WebpubManifest } from './WebpubManifestTypes/WebpubManifest';
 import { epubToManifest } from './convert';
 import Decryptor from '@nypl-simplified-packages/axisnow-access-control-web';
+import LocalFetcher from './LocalFetcher';
 
 /**
  * This class represents a complete EPUB. It is abstract
@@ -24,7 +25,7 @@ import Decryptor from '@nypl-simplified-packages/axisnow-access-control-web';
  * into in-memory representations and to extract values from the various
  * data structures. They will be used by all subclasses.
  */
-export default abstract class Epub {
+export default class Epub {
   static NCX_MEDIA_TYPE = 'application/x-dtbncx+xml';
   static CONTAINER_PATH = 'META-INF/container.xml';
   static description = 'Generic Epub';
@@ -45,10 +46,51 @@ export default abstract class Epub {
 
   public static async build(
     containerXmlPath: string,
-    options?: EpubOptions
-  ): Promise<Epub> {
-    throw new Error(
-      'The `build` method must be overrridden by the concrete class extending Epub.'
+    options: EpubOptions = { decryptor: undefined, fetcher: undefined }
+  ) {
+    const folderPath = containerXmlPath.replace(this.CONTAINER_PATH, '');
+    const { decryptor, fetcher = new LocalFetcher(folderPath, decryptor) } =
+      options;
+
+    const container = Epub.parseContainer(
+      await fetcher.getFileStr(containerXmlPath)
+    );
+    const relativeOpfPath = fetcher.resolvePath(
+      folderPath,
+      Epub.getOpfPath(container)
+    );
+    const opfPath = fetcher.resolvePath(folderPath, relativeOpfPath);
+    const opf = await Epub.parseOpf(await fetcher.getFileStr(opfPath));
+
+    const relativeNcxPath = Epub.getNcxHref(opf);
+    const ncxPath = relativeNcxPath
+      ? fetcher.resolvePath(opfPath, relativeNcxPath)
+      : undefined;
+    const ncxBuffer = ncxPath
+      ? await fetcher.getArrayBuffer(ncxPath)
+      : undefined;
+    const ncxStr = await Epub.decryptStr(ncxBuffer, decryptor);
+    const ncx = Epub.parseNcx(ncxStr);
+
+    const relativeNavDocPath = Epub.getNavDocHref(opf);
+    const navDocPath = relativeNavDocPath
+      ? fetcher.resolvePath(opfPath, relativeNavDocPath)
+      : undefined;
+    const navDocBuffer = navDocPath
+      ? await fetcher.getArrayBuffer(navDocPath)
+      : undefined;
+    const navDocStr = await Epub.decryptStr(navDocBuffer, decryptor);
+    const navDoc = Epub.parseNavDoc(navDocStr);
+
+    return new Epub(
+      containerXmlPath,
+      folderPath,
+      opfPath,
+      container,
+      opf,
+      ncx,
+      navDoc,
+      decryptor
     );
   }
 
@@ -83,21 +125,6 @@ export default abstract class Epub {
   get webpubManifest(): Promise<WebpubManifest> {
     return epubToManifest(this);
   }
-
-  ///////////////////
-  // ABSTRACT METHODS THAT DIFFER BY SUBCLASS
-  ///////////////////
-
-  // resolves a url relative to another
-  abstract resolvePath(from: string, to: string): string;
-  // similar to resolvePath, but returns a path relative to epub folder.
-  abstract resolveRelativePath(from: string, to: string): string;
-  abstract getFileStr(path: string): Promise<string>;
-  abstract getArrayBuffer(path: string): Promise<ArrayBuffer>;
-  // gets the dimensions of an image
-  abstract getImageDimensions(
-    path: string
-  ): Promise<{ width: number; height: number } | undefined>;
 
   ///////////////////
   // METHODS FOR DESERIALIZING VALUES INTO IN-MEMORY CLASSES
