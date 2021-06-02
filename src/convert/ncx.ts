@@ -1,7 +1,7 @@
 import { NCX } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/ncx';
 import { NavPoint } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/ncx-navpoint';
 import Epub from '../Epub';
-import { ReadiumLink } from '../WebpubManifest/ReadiumLink';
+import { ReadiumLink } from '../WebpubManifestTypes/ReadiumLink';
 
 /**
  * NCX files are used by EPUB 2 books to define the
@@ -19,28 +19,28 @@ export function extractTocFromNcx(epub: Epub, ncx: NCX): ReadiumLink[] {
 /**
  * Turns a NavPoint from an NCX file into a ReadiumLink.
  */
-export const navPointToLink = (epub: Epub) => (
-  point: NavPoint
-): ReadiumLink => {
-  const href = point.Content.SrcDecoded;
-  if (!href) {
-    throw new Error(`NavPoint missing href: ${point}`);
-  }
-  const link: ReadiumLink = {
-    title: point.NavLabel.Text,
-    href: epub.getRelativeHref(href),
-  };
+export const navPointToLink =
+  (epub: Epub) =>
+  (point: NavPoint): ReadiumLink => {
+    const href = point.Content.SrcDecoded;
+    if (!href) {
+      throw new Error(`NavPoint missing href: ${point}`);
+    }
+    const link: ReadiumLink = {
+      title: point.NavLabel.Text,
+      href: epub.getRelativeHref(href),
+    };
 
-  // we cast this to make the type wider because it's wrong in r2-shared-js.
-  // it actually can be undefined.
-  const childPoints = point.Points as NavPoint[] | undefined;
-  // recurse on the children points
-  if (childPoints && childPoints.length > 0) {
-    const children = childPoints.map(navPointToLink(epub)).filter(isLink);
-    link.children = children;
-  }
-  return link;
-};
+    // we cast this to make the type wider because it's wrong in r2-shared-js.
+    // it actually can be undefined.
+    const childPoints = point.Points as NavPoint[] | undefined;
+    // recurse on the children points
+    if (childPoints && childPoints.length > 0) {
+      const children = childPoints.map(navPointToLink(epub)).filter(isLink);
+      link.children = children;
+    }
+    return link;
+  };
 
 // useful for typescript to use in a filter
 function isLink(val: ReadiumLink | undefined): val is ReadiumLink {

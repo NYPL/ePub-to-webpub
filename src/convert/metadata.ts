@@ -1,7 +1,7 @@
 import { Metafield } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-metafield';
 import Epub from '../Epub';
-import { Contributors } from '../WebpubManifest/Metadata';
-import { WebpubManifest } from '../WebpubManifest/WebpubManifest';
+import { Contributors } from '../WebpubManifestTypes/Metadata';
+import { WebpubManifest } from '../WebpubManifestTypes/WebpubManifest';
 
 /**
  * For the purposes of this project, the metadata is not _super_ important since
@@ -68,7 +68,7 @@ function extractContributors(epub: Epub): Contributors {
       // get the role, which is a sibling xml node. The default is contributor
       const epubRole =
         epub.extractMetaField(
-          field => field.Property === 'role' && field.ID === contributor.ID
+          (field) => field.Property === 'role' && field.ID === contributor.ID
         )?.[0]?.Data ?? 'contributor';
       const webpubRole = roleMap[epubRole] ?? 'contributor';
       return {
@@ -83,7 +83,7 @@ function extractContributors(epub: Epub): Contributors {
   const creators = epub.extractMetadataMember('Creator');
   if (creators.length > 0) {
     if (creators.length > 1) {
-      contributors.author = creators.map(creator => creator.Data);
+      contributors.author = creators.map((creator) => creator.Data);
     } else {
       contributors.author = creators[0].Data;
     }

@@ -1,5 +1,5 @@
 import { ReadiumWebpubContext } from '../constants';
-import { WebpubManifest } from '../WebpubManifest/WebpubManifest';
+import { WebpubManifest } from '../WebpubManifestTypes/WebpubManifest';
 import Epub from '../Epub';
 import { extractTocFromNavDoc } from './navdoc';
 import { extractTocFromNcx } from './ncx';

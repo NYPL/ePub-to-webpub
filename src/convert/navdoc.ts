@@ -1,5 +1,5 @@
 import Epub from '../Epub';
-import { ReadiumLink } from '../WebpubManifest/ReadiumLink';
+import { ReadiumLink } from '../WebpubManifestTypes/ReadiumLink';
 import xpath from 'xpath';
 import { DOMParser } from 'xmldom';
 
@@ -40,48 +40,48 @@ export function extractTocFromNavDoc(epub: Epub): ReadiumLink[] {
  * only a title and children. This is invalid in Readium, so we hoist the href of
  * the first child to be the href of the parent as well.
  */
-export const listItemToLink = (epub: Epub) => (
-  listItem: Element
-): ReadiumLink => {
-  const doc = new DOMParser().parseFromString(listItem.toString(), 'utf-8');
-  const spanTitle = select('string(/xhtml:li/xhtml:span)', doc, true); //?
-  const anchorTitle = select('string(/xhtml:li/xhtml:a)', doc, true); //?
-  const href = select('string(/xhtml:li/xhtml:a/@href)', doc); //?
+export const listItemToLink =
+  (epub: Epub) =>
+  (listItem: Element): ReadiumLink => {
+    const doc = new DOMParser().parseFromString(listItem.toString(), 'utf-8');
+    const spanTitle = select('string(/xhtml:li/xhtml:span)', doc, true); //?
+    const anchorTitle = select('string(/xhtml:li/xhtml:a)', doc, true); //?
+    const href = select('string(/xhtml:li/xhtml:a/@href)', doc); //?
 
-  const childElements = select('/xhtml:li/xhtml:ol/xhtml:li', doc) as
-    | Element[]
-    | undefined;
-  const children = childElements?.map(listItemToLink(epub));
+    const childElements = select('/xhtml:li/xhtml:ol/xhtml:li', doc) as
+      | Element[]
+      | undefined;
+    const children = childElements?.map(listItemToLink(epub));
 
-  // if it has a spanTitle then it doesn't have a child <a> tag, and
-  // we have to get the href from the children.
-  if (typeof spanTitle === 'string' && spanTitle.length > 0) {
-    if (!children?.[0]) {
-      throw new Error('TOC List Item with <span> is missing children.');
+    // if it has a spanTitle then it doesn't have a child <a> tag, and
+    // we have to get the href from the children.
+    if (typeof spanTitle === 'string' && spanTitle.length > 0) {
+      if (!children?.[0]) {
+        throw new Error('TOC List Item with <span> is missing children.');
+      }
+      const firstChildHref = children?.[0].href;
+      const link: ReadiumLink = {
+        href: firstChildHref,
+        title: spanTitle,
+      };
+      // add children if there are any
+      if (children && children.length > 0) link.children = children;
+      return link;
     }
-    const firstChildHref = children?.[0].href;
+
+    // otherwise we are dealing with a standard element with an <a> tag within.
+    if (typeof anchorTitle !== 'string' || anchorTitle.length < 1) {
+      throw new Error(`TOC List item missing title: ${listItem.toString()}`);
+    }
+    if (typeof href !== 'string') {
+      throw new Error(`TOC List item missing href: ${listItem.toString()}`);
+    }
+
     const link: ReadiumLink = {
-      href: firstChildHref,
-      title: spanTitle,
+      title: anchorTitle,
+      href: epub.getRelativeHref(href),
     };
     // add children if there are any
     if (children && children.length > 0) link.children = children;
     return link;
-  }
-
-  // otherwise we are dealing with a standard element with an <a> tag within.
-  if (typeof anchorTitle !== 'string' || anchorTitle.length < 1) {
-    throw new Error(`TOC List item missing title: ${listItem.toString()}`);
-  }
-  if (typeof href !== 'string') {
-    throw new Error(`TOC List item missing href: ${listItem.toString()}`);
-  }
-
-  const link: ReadiumLink = {
-    title: anchorTitle,
-    href: epub.getRelativeHref(href),
   };
-  // add children if there are any
-  if (children && children.length > 0) link.children = children;
-  return link;
-};

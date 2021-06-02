@@ -3,7 +3,7 @@ declare module '@nypl-simplified-packages/axisnow-access-control-web' {
    * This is a copy of the Decryptor interface from axisnow-access-control-web,
    * which is a private package and therefore not guaranteed to be installable.
    */
-  declare type DecryptorParams = {
+  type DecryptorParams = {
     book_vault_uuid?: string;
     isbn?: string;
   };
