@@ -1,6 +1,6 @@
 import { Manifest } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-manifest';
 import Epub from '../Epub';
-import { ReadiumLink } from '../WebpubManifest/ReadiumLink';
+import { ReadiumLink } from '../WebpubManifestTypes/ReadiumLink';
 
 /**
  * The readingOrder lists the resources of the publication in the reading order
@@ -20,7 +20,7 @@ export async function resourcesAndReadingOrder(
   const appearsInReadingOrder: Record<string, boolean> = {};
   const readingOrder = epub.opf.Spine.Items.reduce<ReadiumLink[]>(
     (acc, item) => {
-      const link = allResources.find(link => link.id === item.IDref);
+      const link = allResources.find((link) => link.id === item.IDref);
       if (link) {
         if (!item.Linear || item.Linear === 'yes') {
           acc.push(link);
@@ -33,7 +33,7 @@ export async function resourcesAndReadingOrder(
   );
   // filter allResources to only have ones not found in reading order
   const resources = allResources.filter(
-    link => !appearsInReadingOrder[link.id]
+    (link) => !appearsInReadingOrder[link.id]
   );
 
   return {
@@ -81,32 +81,32 @@ async function extractResources(epub: Epub): Promise<LinkWithId[]> {
  * function.
  *
  */
-const manifestToLink = (epub: Epub) => async (
-  manifest: Manifest
-): Promise<LinkWithId> => {
-  const decodedHref = manifest.HrefDecoded;
-  if (!decodedHref) {
-    throw new Error(`OPF Link missing HrefDecoded`);
-  }
-  const link: LinkWithId = {
-    href: epub.getRelativeHref(decodedHref),
-    type: manifest.MediaType,
-    id: manifest.ID,
-  };
-
-  // if it is an image, we should get the height and width
-  if (link.type?.includes('image/')) {
-    const dimensions = await epub.getImageDimensions(decodedHref);
-    if (dimensions?.width && dimensions.height) {
-      link.width = dimensions.width;
-      link.height = dimensions.height;
+const manifestToLink =
+  (epub: Epub) =>
+  async (manifest: Manifest): Promise<LinkWithId> => {
+    const decodedHref = manifest.HrefDecoded;
+    if (!decodedHref) {
+      throw new Error(`OPF Link missing HrefDecoded`);
     }
-  }
+    const link: LinkWithId = {
+      href: epub.getRelativeHref(decodedHref),
+      type: manifest.MediaType,
+      id: manifest.ID,
+    };
 
-  const linkWithProperties = addEpub3Properties(epub, manifest, link);
+    // if it is an image, we should get the height and width
+    if (link.type?.includes('image/')) {
+      const dimensions = await epub.getImageDimensions(decodedHref);
+      if (dimensions?.width && dimensions.height) {
+        link.width = dimensions.width;
+        link.height = dimensions.height;
+      }
+    }
 
-  return linkWithProperties;
-};
+    const linkWithProperties = addEpub3Properties(epub, manifest, link);
+
+    return linkWithProperties;
+  };
 
 /**
  * EPUB 3
@@ -127,7 +127,8 @@ function addEpub3Properties(
     manifest.Properties
   );
   const spineProperties = Epub.parseSpaceSeparatedString(
-    epub.opf.Spine?.Items?.find(item => item.IDref === manifest.ID)?.Properties
+    epub.opf.Spine?.Items?.find((item) => item.IDref === manifest.ID)
+      ?.Properties
   );
   const allProperties = [...manifestProperties, ...spineProperties];
 
