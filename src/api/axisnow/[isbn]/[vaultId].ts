@@ -2,18 +2,11 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import Decryptor from '@nypl-simplified-packages/axisnow-access-control-web';
 import RemoteExplodedEpub from '../../../RemoteExplodedEpub';
+import { validateParam } from '../../../utils';
 
-function validateParam(
-  name: string,
-  query: Record<string, string | string[]>
-): string {
-  const param = query[name];
-  if (typeof param !== 'string') {
-    throw new Error(`Parameter ${name} is not a string: ${param}`);
-  }
-  return param;
-}
-
+/**
+ * This is a handler for Open eBooks Axisnow encrypted EPUBS.
+ */
 export default async function epubToWebpub(
   req: VercelRequest,
   res: VercelResponse

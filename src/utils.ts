@@ -14,3 +14,17 @@ export function removeUndefined<T extends Record<string, unknown>>(obj: T): T {
 export function safelyGet<T>(arr: T[], index: number): T | undefined {
   return arr[index];
 }
+
+/**
+ * For use in our serverless handlers
+ */
+export function validateParam(
+  name: string,
+  query: Record<string, string | string[]>
+): string {
+  const param = query[name];
+  if (typeof param !== 'string') {
+    throw new Error(`Parameter ${name} is not a string: ${param}`);
+  }
+  return param;
+}
