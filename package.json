@@ -32,7 +32,8 @@
     ],
     "entryPoints": [
       "src/index.ts",
-      "src/cli/index.ts"
+      "src/cli/index.ts",
+      "src/api/axisnow/[isbn]/[vaultId].ts"
     ]
   },
   "peerDependencies": {
@@ -62,6 +63,7 @@
     "@types/xml2js": "^0.4.8",
     "@typescript-eslint/eslint-plugin": "^4.25.0",
     "@typescript-eslint/parser": "^4.25.0",
+    "@vercel/node": "^1.11.0",
     "chalk": "^4.1.1",
     "esbuild-jest": "^0.5.0",
     "eslint": "^7.27.0",
