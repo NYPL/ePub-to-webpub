@@ -45,30 +45,31 @@ export default class LocalExplodedEpub extends Epub {
     const container = Epub.parseContainer(
       await LocalExplodedEpub.getFileStr(containerXmlPath)
     );
-    const rootfile = Epub.getRootfile(container);
-    const opfPath = path.resolve(folderPath, Epub.getOpfPath(container));
+    const relativeOpfPath = path.resolve(
+      folderPath,
+      Epub.getOpfPath(container)
+    );
+    const opfPath = LocalExplodedEpub.resolvePath(folderPath, relativeOpfPath);
     const opf = await Epub.parseOpf(
-      await LocalExplodedEpub.getFileStr(folderPath, opfPath)
+      await LocalExplodedEpub.getFileStr(opfPath)
     );
 
-    const ncxHref = Epub.getNcxHref(opf);
-    const ncxBuffer = ncxHref
-      ? await LocalExplodedEpub.getArrayBuffer(
-          folderPath,
-          Epub.getContentPath(rootfile, opf),
-          ncxHref
-        )
+    const relativeNcxPath = Epub.getNcxHref(opf);
+    const ncxPath = relativeNcxPath
+      ? LocalExplodedEpub.resolvePath(opfPath, relativeNcxPath)
+      : undefined;
+    const ncxBuffer = ncxPath
+      ? await LocalExplodedEpub.getArrayBuffer(ncxPath)
       : undefined;
     const ncxStr = await Epub.decryptStr(ncxBuffer, decryptor);
     const ncx = Epub.parseNcx(ncxStr);
 
-    const navDocHref = Epub.getNavDocHref(opf);
-    const navDocBuffer = navDocHref
-      ? await LocalExplodedEpub.getArrayBuffer(
-          folderPath,
-          Epub.getContentPath(rootfile, opf),
-          navDocHref
-        )
+    const relativeNavDocPath = Epub.getNavDocHref(opf);
+    const navDocPath = relativeNavDocPath
+      ? LocalExplodedEpub.resolvePath(opfPath, relativeNavDocPath)
+      : undefined;
+    const navDocBuffer = navDocPath
+      ? await LocalExplodedEpub.getArrayBuffer(navDocPath)
       : undefined;
     const navDocStr = await Epub.decryptStr(navDocBuffer, decryptor);
     const navDoc = Epub.parseNavDoc(navDocStr);
@@ -91,28 +92,25 @@ export default class LocalExplodedEpub extends Epub {
    */
 
   static async getArrayBuffer(path: string): Promise<ArrayBuffer> {
-    const fullPath = path.resolve(...paths);
-    const buffer = fs.readFileSync(fullPath, null);
+    const buffer = fs.readFileSync(path, null);
     return Promise.resolve(buffer);
   }
-  async getArrayBuffer(...paths: string[]): Promise<ArrayBuffer> {
-    return LocalExplodedEpub.getArrayBuffer(...paths);
+  async getArrayBuffer(path: string): Promise<ArrayBuffer> {
+    return LocalExplodedEpub.getArrayBuffer(path);
   }
 
-  static getFileStr(...paths: string[]): Promise<string> {
-    const fullPath = path.resolve(...paths);
-    return Promise.resolve(fs.readFileSync(fullPath, 'utf-8'));
+  static getFileStr(path: string): Promise<string> {
+    return Promise.resolve(fs.readFileSync(path, 'utf-8'));
   }
   getFileStr(path: string): Promise<string> {
-    return LocalExplodedEpub.getFileStr(
-      this.folderPath,
-      this.contentPath,
-      path
-    );
+    return LocalExplodedEpub.getFileStr(path);
   }
 
+  static resolvePath(from: string, to: string): string {
+    return path.resolve(from, '../', to);
+  }
   resolvePath(from: string, to: string): string {
-    return path.resolve(from, to);
+    return LocalExplodedEpub.resolvePath(from, to);
   }
   resolveRelativePath(from: string, to: string): string {
     return this.resolvePath(from, to).replace(this.folderPath, '');
