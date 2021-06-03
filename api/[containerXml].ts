@@ -16,6 +16,10 @@ export default async function epubToWebpub(
     const fetcher = new RemoteFetcher(containerXmlHref);
     const epub = await Epub.build(containerXmlHref, fetcher);
     const manifest = await epub.webpubManifest;
+    res.setHeader(
+      'Cache-Control',
+      'maxage=0, s-maxage=1, stale-while-revalidate'
+    );
     res.status(200).json(manifest);
     return;
   } catch (e: unknown) {
