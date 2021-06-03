@@ -21,9 +21,9 @@ export default abstract class Fetcher {
   abstract getOpfPath(relativeOpfPath: string): string;
 
   // the following functions take absolute paths/hrefs
-  abstract async getArrayBuffer(path: string): Promise<ArrayBuffer>;
-  abstract async getFileStr(path: string): Promise<string>;
-  abstract async getImageDimensions(
+  abstract getArrayBuffer(path: string): Promise<ArrayBuffer>;
+  abstract getFileStr(path: string): Promise<string>;
+  abstract getImageDimensions(
     path: string
   ): Promise<ImageDimensions | undefined>;
 }
