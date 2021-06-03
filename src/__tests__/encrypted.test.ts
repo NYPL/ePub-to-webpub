@@ -1,8 +1,8 @@
-import { RemoteExplodedEpub } from '..';
 import { baseUrl } from './constants';
 import Decryptor from '@nypl-simplified-packages/axisnow-access-control-web';
-import LocalExplodedEpub from '../LocalExplodedEpub';
 import path from 'path';
+import LocalFetcher from '../LocalFetcher';
+import Epub from '../Epub';
 
 const encryptedHref = `${baseUrl}/samples/axisnow/encrypted/META-INF/container.xml`;
 const decryptedHref = `${baseUrl}/samples/axisnow/decrypted/META-INF/container.xml`;
@@ -30,11 +30,12 @@ const parameters = {
 describe.skip('Encrypted Manifest', () => {
   it('Local - Equals the Decrypted version', async () => {
     const decryptor = await Decryptor?.createDecryptor(parameters);
-    const encryptedEpub = await LocalExplodedEpub.build(encryptedPath, {
-      decryptor,
-    });
+    const fetcher = new LocalFetcher(encryptedPath, decryptor);
+    const encryptedEpub = await Epub.build(encryptedPath, fetcher, decryptor);
     const encryptedManifest = await encryptedEpub.webpubManifest;
-    const decryptedEpub = await LocalExplodedEpub.build(decryptedPath);
+
+    const decryptedFetcher = new LocalFetcher(decryptedPath);
+    const decryptedEpub = await Epub.build(decryptedPath, decryptedFetcher);
     const decryptedManifest = await decryptedEpub.webpubManifest;
 
     expect(encryptedManifest).toEqual(decryptedManifest);
@@ -42,11 +43,12 @@ describe.skip('Encrypted Manifest', () => {
 
   it('Remote - Equals the Decrypted version', async () => {
     const decryptor = await Decryptor?.createDecryptor(parameters);
-    const encryptedEpub = await RemoteExplodedEpub.build(encryptedHref, {
-      decryptor,
-    });
+    const fetcher = new LocalFetcher(encryptedHref, decryptor);
+    const encryptedEpub = await Epub.build(encryptedHref, fetcher, decryptor);
     const encryptedManifest = await encryptedEpub.webpubManifest;
-    const decryptedEpub = await RemoteExplodedEpub.build(decryptedHref);
+
+    const decryptedFetcher = new LocalFetcher(decryptedHref);
+    const decryptedEpub = await Epub.build(decryptedHref, decryptedFetcher);
     const decryptedManifest = await decryptedEpub.webpubManifest;
 
     expect(encryptedManifest).toEqual(decryptedManifest);

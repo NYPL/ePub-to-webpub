@@ -88,15 +88,20 @@ const manifestToLink =
     if (!decodedHref) {
       throw new Error(`OPF Link missing HrefDecoded`);
     }
+    const relativePath = epub.fetcher.resolveRelativePath(
+      epub.opfPath,
+      decodedHref
+    );
     const link: LinkWithId = {
-      href: epub.getRelativeHref(decodedHref),
+      href: relativePath,
       type: manifest.MediaType,
       id: manifest.ID,
     };
 
     // if it is an image, we should get the height and width
     if (link.type?.includes('image/')) {
-      const dimensions = await epub.getImageDimensions(decodedHref);
+      const fullPath = epub.fetcher.resolvePath(epub.opfPath, decodedHref);
+      const dimensions = await epub.fetcher.getImageDimensions(fullPath);
       if (dimensions?.width && dimensions.height) {
         link.width = dimensions.width;
         link.height = dimensions.height;

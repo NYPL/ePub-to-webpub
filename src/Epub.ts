@@ -10,6 +10,9 @@ import { Rootfile } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/container
 import { WebpubManifest } from './WebpubManifestTypes/WebpubManifest';
 import { epubToManifest } from './convert';
 import Decryptor from '@nypl-simplified-packages/axisnow-access-control-web';
+import LocalFetcher from './LocalFetcher';
+import Fetcher from './Fetcher';
+import path from 'path';
 
 /**
  * This class represents a complete EPUB. It is abstract
@@ -20,42 +23,69 @@ import Decryptor from '@nypl-simplified-packages/axisnow-access-control-web';
  *  - Remote (external server) exploded EPUB
  *  - Remote packaged EPUB
  *
- * For each of these cases we should only need to implement
- * the following functions:
- *  - build
- *  - getFileStr
- *  - getFullHref
- * Then, the consumer (in this case construct-manifest) doesn't
- * need to worry about how to source the contents, that's abstracted
- * away. It just uses the properties and methods on the Epub class
- * to build the manifest.
- *
  * This class includes utilites used to parse the string file values
  * into in-memory representations and to extract values from the various
  * data structures. They will be used by all subclasses.
  */
-export default abstract class Epub {
+export default class Epub {
   static NCX_MEDIA_TYPE = 'application/x-dtbncx+xml';
-  static CONTAINER_PATH = 'META-INF/container.xml';
-  static description = 'Generic Epub';
 
   constructor(
+    public readonly fetcher: Fetcher,
     private readonly containerXmlPath: string,
-    public readonly folderPath: string,
+    // used to resolve items relative to the opf file
+    public readonly opfPath: string,
     public readonly container: Container,
     public readonly opf: OPF,
     // EPUB 2 uses NCX, EPUB 3 uses NavDoc
     public readonly ncx: NCX | undefined,
     public readonly navDoc: Document | undefined,
+    // pass a decryptor to have all files except container.xml and opf run through it
     public readonly decryptor?: Decryptor
   ) {}
 
   public static async build(
     containerXmlPath: string,
-    options?: EpubOptions
-  ): Promise<Epub> {
-    throw new Error(
-      'The `build` method must be overrridden by the concrete class extending Epub.'
+    fetcher: Fetcher,
+    decryptor?: Decryptor
+  ) {
+    const container = Epub.parseContainer(
+      await fetcher.getFileStr(containerXmlPath)
+    );
+    const relativeOpfPath = Epub.getOpfPath(container);
+    const opfPath = fetcher.getOpfPath(relativeOpfPath);
+    const opf = await Epub.parseOpf(await fetcher.getFileStr(opfPath));
+
+    const relativeNcxPath = Epub.getNcxHref(opf);
+    const ncxPath = relativeNcxPath
+      ? fetcher.resolvePath(opfPath, relativeNcxPath)
+      : undefined;
+
+    const ncxBuffer = ncxPath
+      ? await fetcher.getArrayBuffer(ncxPath)
+      : undefined;
+    const ncxStr = await Epub.decryptStr(ncxBuffer, decryptor);
+    const ncx = Epub.parseNcx(ncxStr);
+
+    const relativeNavDocPath = Epub.getNavDocHref(opf);
+    const navDocPath = relativeNavDocPath
+      ? fetcher.resolvePath(opfPath, relativeNavDocPath)
+      : undefined;
+    const navDocBuffer = navDocPath
+      ? await fetcher.getArrayBuffer(navDocPath)
+      : undefined;
+    const navDocStr = await Epub.decryptStr(navDocBuffer, decryptor);
+    const navDoc = Epub.parseNavDoc(navDocStr);
+
+    return new Epub(
+      fetcher,
+      containerXmlPath,
+      opfPath,
+      container,
+      opf,
+      ncx,
+      navDoc,
+      decryptor
     );
   }
 
@@ -90,22 +120,6 @@ export default abstract class Epub {
   get webpubManifest(): Promise<WebpubManifest> {
     return epubToManifest(this);
   }
-
-  ///////////////////
-  // ABSTRACT METHODS THAT DIFFER BY SUBCLASS
-  ///////////////////
-
-  // returns an href relative to the folder root given one relative to the content
-  // directory (ie from OEBPS or OPS)
-  abstract getRelativeHref(path: string): string;
-  // returns the absolute href to get the file, whether a remote url or a filesystem path
-  abstract getAbsoluteHref(path: string): string | URL;
-  abstract getFileStr(path: string): Promise<string>;
-  abstract getArrayBuffer(path: string): Promise<ArrayBuffer>;
-  // gets the dimensions of an image
-  abstract getImageDimensions(
-    path: string
-  ): Promise<{ width: number; height: number } | undefined>;
 
   ///////////////////
   // METHODS FOR DESERIALIZING VALUES INTO IN-MEMORY CLASSES
