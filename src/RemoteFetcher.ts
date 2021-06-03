@@ -6,10 +6,10 @@ import Fetcher from './Fetcher';
 
 export default class RemoteFetcher extends Fetcher {
   constructor(
-    public readonly folderPath: string,
+    public readonly containerXmlPath: string,
     public readonly decryptor?: Decryptor
   ) {
-    super(folderPath, decryptor);
+    super(containerXmlPath, decryptor);
   }
 
   /**
@@ -31,6 +31,10 @@ export default class RemoteFetcher extends Fetcher {
   async getFileStr(url: string) {
     const result = await this.fetch(url);
     return await result.text();
+  }
+
+  getOpfPath(relativeOpfPath: string): string {
+    return this.resolvePath(this.folderPath, relativeOpfPath);
   }
 
   resolvePath(from: string, to: string): string {

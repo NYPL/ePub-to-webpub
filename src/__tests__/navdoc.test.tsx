@@ -107,8 +107,10 @@ describe('listItemToLink', () => {
 
   const epub = {
     contentPath: 'OPS/',
-    getRelativeHref: function getRelativeHref(relative: string) {
-      return `OPS/${relative}`;
+    fetcher: {
+      resolveRelativePath: (from: string, to: string) => {
+        return `OPS/${to}`;
+      },
     },
   } as Epub;
 

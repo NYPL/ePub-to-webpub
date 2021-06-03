@@ -8,10 +8,14 @@ import Fetcher from './Fetcher';
 
 export default class LocalFetcher extends Fetcher {
   constructor(
-    public readonly folderPath: string,
+    public readonly containerXmlPath: string,
     public readonly decryptor?: Decryptor
   ) {
-    super(folderPath, decryptor);
+    super(containerXmlPath, decryptor);
+  }
+
+  getOpfPath(relativeOpfPath: string): string {
+    return path.resolve(this.containerXmlPath, '../../', relativeOpfPath);
   }
 
   resolvePath(from: string, to: string): string {

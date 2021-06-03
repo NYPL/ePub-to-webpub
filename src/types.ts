@@ -5,7 +5,7 @@ export type EpubVersion = '2' | '3';
 
 export type EpubOptions = {
   decryptor?: Decryptor;
-  fetcher?: Fetcher;
+  fetcher: Fetcher;
 };
 
 export type ImageDimensions = {

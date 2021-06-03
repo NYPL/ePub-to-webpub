@@ -11,6 +11,8 @@ import { WebpubManifest } from './WebpubManifestTypes/WebpubManifest';
 import { epubToManifest } from './convert';
 import Decryptor from '@nypl-simplified-packages/axisnow-access-control-web';
 import LocalFetcher from './LocalFetcher';
+import Fetcher from './Fetcher';
+import path from 'path';
 
 /**
  * This class represents a complete EPUB. It is abstract
@@ -27,12 +29,10 @@ import LocalFetcher from './LocalFetcher';
  */
 export default class Epub {
   static NCX_MEDIA_TYPE = 'application/x-dtbncx+xml';
-  static CONTAINER_PATH = 'META-INF/container.xml';
-  static description = 'Generic Epub';
 
   constructor(
+    public readonly fetcher: Fetcher,
     private readonly containerXmlPath: string,
-    public readonly folderPath: string,
     // used to resolve items relative to the opf file
     public readonly opfPath: string,
     public readonly container: Container,
@@ -46,26 +46,21 @@ export default class Epub {
 
   public static async build(
     containerXmlPath: string,
-    options: EpubOptions = { decryptor: undefined, fetcher: undefined }
+    fetcher: Fetcher,
+    decryptor?: Decryptor
   ) {
-    const folderPath = containerXmlPath.replace(this.CONTAINER_PATH, '');
-    const { decryptor, fetcher = new LocalFetcher(folderPath, decryptor) } =
-      options;
-
     const container = Epub.parseContainer(
       await fetcher.getFileStr(containerXmlPath)
     );
-    const relativeOpfPath = fetcher.resolvePath(
-      folderPath,
-      Epub.getOpfPath(container)
-    );
-    const opfPath = fetcher.resolvePath(folderPath, relativeOpfPath);
+    const relativeOpfPath = Epub.getOpfPath(container);
+    const opfPath = fetcher.getOpfPath(relativeOpfPath);
     const opf = await Epub.parseOpf(await fetcher.getFileStr(opfPath));
 
     const relativeNcxPath = Epub.getNcxHref(opf);
     const ncxPath = relativeNcxPath
       ? fetcher.resolvePath(opfPath, relativeNcxPath)
       : undefined;
+
     const ncxBuffer = ncxPath
       ? await fetcher.getArrayBuffer(ncxPath)
       : undefined;
@@ -83,8 +78,8 @@ export default class Epub {
     const navDoc = Epub.parseNavDoc(navDocStr);
 
     return new Epub(
+      fetcher,
       containerXmlPath,
-      folderPath,
       opfPath,
       container,
       opf,
