@@ -1,6 +1,7 @@
 /* eslint-disable camelcase */
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import RemoteExplodedEpub from '../src/RemoteExplodedEpub';
+import Epub from '../src/Epub';
+import RemoteFetcher from '../src/RemoteFetcher';
 import { validateParam } from '../src/utils';
 
 /**
@@ -12,8 +13,9 @@ export default async function epubToWebpub(
 ) {
   const containerXmlHref = validateParam('containerXml', req.query);
   try {
-    const epub = await RemoteExplodedEpub.build(containerXmlHref);
-    const manifest = epub.webpubManifest;
+    const fetcher = new RemoteFetcher(containerXmlHref);
+    const epub = await Epub.build(containerXmlHref, fetcher);
+    const manifest = await epub.webpubManifest;
     res.status(200).json(manifest);
     return;
   } catch (e: unknown) {
