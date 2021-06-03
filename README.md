@@ -32,6 +32,13 @@ This repository is a converter between EPUBS and Webpubs. It can either be deplo
 ✔ Success!
 ```
 
+## Deployed API Endpoint
+
+The API endpoints reside in `/api` and are deployed via [Vercel](https://vercel.com) at `https://epub-to-webpub.vercel.app`. The endpoints are:
+
+- **`/api/[containerXmlUrl]`** - You provide the url to the `container.xml` file of an _exploded_ EPUB, and we will return the webpub manifest.
+- **`/api/axisnow/[isbn]/[book_vault_uuid]`** - You provide the `isbn` and the `book_vault_uuid`, and we return the webpub manifest.
+
 ### Possible Future Features
 
 - Packaged EPUB support.
