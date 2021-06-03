@@ -3,12 +3,13 @@
 import sade from 'sade';
 import chalk from 'chalk';
 import ora from 'ora';
-import { LocalExplodedEpub } from '..';
 import logError from './logError';
 import fs from 'fs/promises';
 import prettier from 'prettier';
 import Epub from '../Epub';
-import RemoteExplodedEpub from '../RemoteExplodedEpub';
+import Fetcher from '../Fetcher';
+import LocalFetcher from '../LocalFetcher';
+import RemoteFetcher from '../RemoteFetcher';
 const pkg = require('../../package.json');
 
 const log = (info: string, arg?: string) =>
@@ -38,11 +39,20 @@ sade('epub-to-webpub <path> <dest>', true)
     );
     const spinner = ora('Determining EPUB Type');
     spinner.start();
-    const epubClass = getEpubClass(path);
-    spinner.succeed(log('Detected type: ', epubClass.description));
+    const epubType = getEpubType(path);
+    const description =
+      epubType === 'local-exploded'
+        ? 'Local Exploded EPUB'
+        : 'Remote Exploded EPUB';
+    spinner.succeed(log('Detected type: ', description));
+
     try {
       spinner.start(log('Reading EPUB from: ', path));
-      const epub = await epubClass.build(path);
+      const fetcher =
+        epubType === 'local-exploded'
+          ? new LocalFetcher(path)
+          : new RemoteFetcher(path);
+      const epub = await Epub.build(path, fetcher);
       spinner.succeed();
       spinner.start(log('Converting to Webpub...'));
       const manifest = await epub.webpubManifest;
@@ -65,16 +75,13 @@ sade('epub-to-webpub <path> <dest>', true)
   })
   .parse(process.argv);
 
-function getEpubClass(path: string): {
-  build: (containerXmlPath: string) => Promise<Epub>;
-  description: string;
-} {
+function getEpubType(path: string) {
   const remote = isRemote(path);
   const exploded = isExploded(path);
   // remote exploded
-  if (remote && exploded) return RemoteExplodedEpub;
+  if (remote && exploded) return 'remote-exploded';
   // local exploded
-  if (!remote && exploded) return LocalExplodedEpub;
+  if (!remote && exploded) return 'local-exploded';
   // remote or local packaged
   throw new Error('Packaged EPUBS not yet supported');
 }
