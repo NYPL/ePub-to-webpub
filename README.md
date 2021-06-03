@@ -79,9 +79,7 @@ There are three main pieces to the architecture:
 
 ## Vercel Handlers
 
-CJS, ESModules, and UMD module formats are supported.
-
-The appropriate paths are configured in `package.json` and `dist/index.js` accordingly. Please report if any issues are found.
+The API endpoints are located in `/api` and deployed to Vercel.
 
 ## Testing
 
