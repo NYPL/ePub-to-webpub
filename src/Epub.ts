@@ -5,14 +5,12 @@ import { DCMetadata } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-dc-
 import { Metafield } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-metafield';
 import { XML } from 'r2-utils-js/dist/es8-es2017/src/_utils/xml-js-mapper';
 import { DOMParser } from 'xmldom';
-import { EpubOptions, EpubVersion } from './types';
+import { EpubVersion } from './types';
 import { Rootfile } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/container-rootfile';
 import { WebpubManifest } from './WebpubManifestTypes/WebpubManifest';
 import { epubToManifest } from './convert';
 import Decryptor from '@nypl-simplified-packages/axisnow-access-control-web';
-import LocalFetcher from './LocalFetcher';
 import Fetcher from './Fetcher';
-import path from 'path';
 
 /**
  * This class represents a complete EPUB. It is abstract

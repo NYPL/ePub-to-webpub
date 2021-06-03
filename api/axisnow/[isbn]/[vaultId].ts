@@ -1,8 +1,9 @@
 /* eslint-disable camelcase */
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import Decryptor from '@nypl-simplified-packages/axisnow-access-control-web';
-import RemoteExplodedEpub from '../../../src/RemoteExplodedEpub';
 import { validateParam } from '../../../src/utils';
+import Epub from '../../../src/Epub';
+import RemoteFetcher from '../../../src/RemoteFetcher';
 
 /**
  * This is a handler for Open eBooks Axisnow encrypted EPUBS.
@@ -19,9 +20,8 @@ export default async function epubToWebpub(
       isbn,
     });
     const containerXmlHref = decryptor?.containerUrl;
-    const epub = await RemoteExplodedEpub.build(containerXmlHref, {
-      decryptor,
-    });
+    const fetcher = new RemoteFetcher(containerXmlHref, decryptor);
+    const epub = await Epub.build(containerXmlHref, fetcher, decryptor);
     const manifest = epub.webpubManifest;
     res.status(200).json(manifest);
   } catch (e: unknown) {
