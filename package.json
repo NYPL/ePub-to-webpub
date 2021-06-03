@@ -23,8 +23,7 @@
     "epub-to-webpub": "./dist/cli/index.js"
   },
   "np": {
-    "branch": "main",
-    "contents": "dist"
+    "branch": "main"
   },
   "tsup": {
     "splitting": false,
