@@ -58,6 +58,25 @@ There are three main pieces to the architecture:
 - `npm run test` - perform a test run using Jest.
 - `npm run test:watch` - perform a test run and re-test on code change.
 
+## Repo Organization
+
+```txt
+/api                 # vercel lambda functions
+/mocks               # msw mocks for testing network-dependent code
+/samples             # example EPUBS in various formats
+/site                # basic index.html file to serve at api root
+/src
+   /__tests__        
+   /cli              # cli entrypoint
+   /convert          # generates a Webpub Manifest from an Epub class
+   /WebpubManifestTypes   # ...
+   Epub.ts           # the main Epub class
+   Fetcher.ts        # abstract Fetcher class to be extended by LocalFetcher etc
+   index.ts          # entrypoint of the npm module
+   LocalFetcher.ts   
+   RemoteFetcher.ts
+```
+
 ## Vercel Handlers
 
 CJS, ESModules, and UMD module formats are supported.
