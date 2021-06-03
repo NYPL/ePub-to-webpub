@@ -7,7 +7,6 @@ import logError from './logError';
 import fs from 'fs/promises';
 import prettier from 'prettier';
 import Epub from '../Epub';
-import Fetcher from '../Fetcher';
 import LocalFetcher from '../LocalFetcher';
 import RemoteFetcher from '../RemoteFetcher';
 const pkg = require('../../package.json');
