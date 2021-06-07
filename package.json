@@ -1,7 +1,10 @@
 {
+  "name": "@nypl/epub-to-webpub",
   "version": "0.3.1",
   "license": "MIT",
   "repository": "https://github.com/NYPL/ePub-to-webpub",
+  "author": "kristojorg",
+  "module": "dist/index.mjs",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "files": [
@@ -10,6 +13,9 @@
   ],
   "engines": {
     "node": ">=14.17"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "test": "jest",
@@ -55,9 +61,6 @@
     "singleQuote": true,
     "trailingComma": "es5"
   },
-  "name": "epub-to-webpub",
-  "author": "kristojorg",
-  "module": "dist/index.mjs",
   "devDependencies": {
     "@size-limit/preset-small-lib": "^4.11.0",
     "@types/jest": "^26.0.23",
