@@ -10,6 +10,12 @@ This repository is a converter between EPUBS and Webpubs. It can either be deplo
 - CLI
 - Vercel-ready API handlers in `/api`
 
+## Installation
+
+```bash
+npm i @nypl/epub-to-webpub
+```
+
 ## CLI Example
 
 ```bash
@@ -38,6 +44,10 @@ The API endpoints reside in `/api` and are deployed via [Vercel](https://vercel.
 
 - **`/api/[containerXmlUrl]`** - You provide the url to the `container.xml` file of an _exploded_ EPUB, and we will return the webpub manifest.
 - **`/api/axisnow/[isbn]/[book_vault_uuid]`** - You provide the `isbn` and the `book_vault_uuid`, and we return the webpub manifest.
+
+## AxisNow Decryption
+
+This repo uses the private github package `@nypl-simplified-packages/axisnow-access-control-web` to decrypt the NCX file in exploded AxisNow EPUBS in order to generate the manifest. If you do not have access to the private github package, you will not be able to deploy this with decryption, and attempting to use the decryption API will throw an error.
 
 ### Possible Future Features
 
