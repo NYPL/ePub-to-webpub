@@ -43,6 +43,7 @@ The API endpoints reside in `/api` and are deployed via [Vercel](https://vercel.
 
 - Packaged EPUB support.
 - Better support for EPUB metadata and other EPUB features.
+- Better cover detection to add `width` and `height` to EPUB 2 cover iamges.
 
 # Architecture
 

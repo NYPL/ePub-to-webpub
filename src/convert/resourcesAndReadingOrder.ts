@@ -98,17 +98,12 @@ const manifestToLink =
       id: manifest.ID,
     };
 
-    // if it is an image, we should get the height and width
-    if (link.type?.includes('image/')) {
-      const fullPath = epub.fetcher.resolvePath(epub.opfPath, decodedHref);
-      const dimensions = await epub.fetcher.getImageDimensions(fullPath);
-      if (dimensions?.width && dimensions.height) {
-        link.width = dimensions.width;
-        link.height = dimensions.height;
-      }
-    }
-
-    const linkWithProperties = addEpub3Properties(epub, manifest, link);
+    const linkWithProperties = await addEpub3Properties(
+      epub,
+      manifest,
+      decodedHref,
+      link
+    );
 
     return linkWithProperties;
   };
@@ -122,11 +117,12 @@ const manifestToLink =
  * @TODO :
  *  - add media overlay
  */
-function addEpub3Properties(
+async function addEpub3Properties(
   epub: Epub,
   manifest: Manifest,
+  href: string,
   link: LinkWithId
-): LinkWithId {
+): Promise<LinkWithId> {
   // get properties from both the manifest itself and the spine
   const manifestProperties = Epub.parseSpaceSeparatedString(
     manifest.Properties
@@ -141,6 +137,15 @@ function addEpub3Properties(
     switch (p) {
       case 'cover-image':
         link.rel = 'cover';
+        // we should get the height and width for cover iamges
+        if (link.type?.includes('image/')) {
+          const fullPath = epub.fetcher.resolvePath(epub.opfPath, href);
+          const dimensions = await epub.fetcher.getImageDimensions(fullPath);
+          if (dimensions?.width && dimensions.height) {
+            link.width = dimensions.width;
+            link.height = dimensions.height;
+          }
+        }
         break;
       case 'nav':
         link.rel = 'contents';

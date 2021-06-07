@@ -51,8 +51,6 @@ describe('Moby EPUB 2 Exploded', () => {
       mobyEpub2Manifest.resources,
       'href',
       'type',
-      'width',
-      'height',
       'type'
     );
   });
@@ -107,8 +105,6 @@ describe('Moby EPUB 3 Exploded', () => {
       mobyEpub3Manifest.resources,
       'href',
       'type',
-      'width',
-      'height',
       'type'
     );
   });
