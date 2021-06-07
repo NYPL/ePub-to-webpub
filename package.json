@@ -17,6 +17,7 @@
     "lint": "eslint src/**",
     "prepare": "tsup-node",
     "build": "tsup-node",
+    "dev": "npm run start",
     "start": "tsup-node --watch",
     "release": "np"
   },
@@ -99,6 +100,6 @@
     "xpath": "^0.0.32"
   },
   "optionalDependencies": {
-    "@nypl-simplified-packages/axisnow-access-control-web": "^1.0.3"
+    "@nypl-simplified-packages/axisnow-access-control-web": "^1.1.0"
   }
 }
