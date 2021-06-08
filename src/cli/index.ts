@@ -47,6 +47,7 @@ sade('epub-to-webpub <path> <dest>', true)
 
     try {
       spinner.start(log('Reading EPUB from: ', path));
+      console.log('PATH', path);
       const fetcher =
         epubType === 'local-exploded'
           ? new LocalFetcher(path)

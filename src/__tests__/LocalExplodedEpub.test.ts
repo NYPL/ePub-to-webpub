@@ -106,11 +106,11 @@ describe('Moby EPUB 3 Exploded', () => {
 
   it('extracts resources', async () => {
     const manifest = await getManifest();
+    console.log(manifest.resources);
     expectSelectivelyArr(
       manifest.resources as any,
       mobyEpub3Manifest.resources,
       'href',
-      'type',
       'type'
     );
   });

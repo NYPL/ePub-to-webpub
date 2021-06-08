@@ -9,7 +9,11 @@ export default class RemoteFetcher extends Fetcher {
     public readonly containerXmlPath: string,
     public readonly decryptor?: Decryptor
   ) {
-    super(containerXmlPath, decryptor);
+    super(
+      containerXmlPath,
+      new URL('../', containerXmlPath).toString(),
+      decryptor
+    );
   }
 
   /**

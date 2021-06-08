@@ -11,7 +11,11 @@ export default class LocalFetcher extends Fetcher {
     public readonly containerXmlPath: string,
     public readonly decryptor?: Decryptor
   ) {
-    super(containerXmlPath, decryptor);
+    super(
+      containerXmlPath,
+      path.resolve(containerXmlPath, '../../').toString(),
+      decryptor
+    );
   }
 
   getOpfPath(relativeOpfPath: string): string {
@@ -22,7 +26,8 @@ export default class LocalFetcher extends Fetcher {
     return path.resolve(from, '../', to);
   }
   resolveRelativePath(from: string, to: string): string {
-    return this.resolvePath(from, to).replace(this.folderPath, '');
+    const fullPath = this.resolvePath(from, to);
+    return path.relative(this.folderPath, fullPath);
   }
   async getArrayBuffer(path: string): Promise<ArrayBuffer> {
     const buffer = fs.readFileSync(path, null);
