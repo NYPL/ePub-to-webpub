@@ -92,7 +92,6 @@ const manifestToLink =
       epub.opfPath,
       decodedHref
     );
-    console.log(relativePath);
     const link: LinkWithId = {
       href: relativePath,
       type: manifest.MediaType,
