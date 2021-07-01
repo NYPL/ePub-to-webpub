@@ -1,0 +1,17 @@
+Transform: AWS::Serverless-2016-10-31
+
+Resources:
+  conversionFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: api/lambda.handler
+      Runtime: nodejs14.x
+      MemorySize: 256
+      Timeout: 10
+      Description: A tool to convert ePub files to Readium Webpub manifests
+      Events:
+        ConvertToWebpub:
+          Type: Api
+          Properties:
+            Path: /api/
+            Method: GET
