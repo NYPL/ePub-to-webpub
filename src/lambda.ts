@@ -1,11 +1,9 @@
 import { Context, APIGatewayProxyEvent } from 'aws-lambda';
-import Epub from '../src/Epub';
-import RemoteFetcher from '../src/RemoteFetcher';
-import { validateParam } from '../src/utils';
+import Epub from './Epub';
+import RemoteFetcher from './RemoteFetcher';
+import { validateParam } from './utils';
 
 exports.handler = async (event: APIGatewayProxyEvent, context: Context) => {
-  console.log('PARAMS', event.pathParameters)
-  console.log(event.pathParameters ? event.pathParameters.containerXml : 'NOT SET')
   const containerXmlHref = validateParam('containerXml', event.pathParameters)
 
   try {
