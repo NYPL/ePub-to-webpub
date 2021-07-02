@@ -7,7 +7,7 @@ export const expectSelectively = (
   received: Record<string, any>,
   ...keys: string[]
 ) => {
-  keys.forEach(key => {
+  keys.forEach((key) => {
     expect(received[key]).toBe(compare[key]);
   });
 };

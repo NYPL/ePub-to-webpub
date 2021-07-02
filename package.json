@@ -45,7 +45,8 @@
     "entryPoints": [
       "src/index.ts",
       "src/cli/index.ts",
-      "src/lambda.ts"
+      "src/lambda.ts",
+      "src/container.ts"
     ]
   },
   "peerDependencies": {
@@ -73,13 +74,19 @@
     "@typescript-eslint/eslint-plugin": "^4.25.0",
     "@typescript-eslint/parser": "^4.25.0",
     "@vercel/node": "^1.11.0",
+    "babel-eslint": "^10.1.0",
     "chalk": "^4.1.1",
     "esbuild": "^0.12.13",
     "esbuild-jest": "^0.5.0",
     "eslint": "^7.27.0",
     "eslint-config-prettier": "^8.3.0",
     "eslint-config-react-app": "^6.0.0",
+    "eslint-plugin-flowtype": "^5.8.0",
+    "eslint-plugin-import": "^2.23.4",
+    "eslint-plugin-jsx-a11y": "^6.4.1",
     "eslint-plugin-prettier": "^3.4.0",
+    "eslint-plugin-react": "^7.24.0",
+    "eslint-plugin-react-hooks": "^4.2.0",
     "file-type": "^16.5.0",
     "husky": "^6.0.0",
     "jest": "^27.0.1",
