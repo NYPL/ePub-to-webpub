@@ -11,10 +11,8 @@ RUN npm install
 
 COPY . /epub-to-webpub
 
-CMD echo $(ls -la)
-
 EXPOSE $PORT
 
 RUN npm run build
 
-CMD node dist/container.js
+ENTRYPOINT node dist/container.js

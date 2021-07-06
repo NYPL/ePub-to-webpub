@@ -92,6 +92,19 @@ There are three main pieces to the architecture:
 
 The API endpoints are located in `/api` and deployed to Vercel.
 
+## AWS Lambda Handlers
+
+The converter may be deployed as an AWS Lambda function by using the the handler method in the `/src/lambda.ts` To invoke the method run `npm build` and provide `dist/lambda.handler` as the entrypoint in the Lambda configuration.
+
+## Docker Handler
+
+The API endpoints may also be run as a containerized service. To do so follow these steps:
+
+1) Build the container with `docker build -t epub-to-webpub .`
+2) Run the container with `docker run -p 5000:5000 epub-to-webpub`
+
+The API will be available at port 5000 on the container (or whichever port you choose to expose on your host)
+
 ## Testing
 
 Tests are written with [Jest](https://jestjs.io). There is one particular thing to note here: we use [MSW](https://mswjs.io) (Magic Service Worker) for testing network-based tasks. It intercepts the Node network requests and allows us to serve custom responses. In this case we serve files from the local filesystem in `/samples`, but it also allows us to test other responses a real server might give.
