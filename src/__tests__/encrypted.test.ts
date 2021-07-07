@@ -1,8 +1,9 @@
 import { baseUrl } from './constants';
-import Decryptor from '@nypl-simplified-packages/axisnow-access-control-web';
 import path from 'path';
 import LocalFetcher from '../LocalFetcher';
 import Epub from '../Epub';
+
+const Decryptor = require('@nypl-simplified-packages/axisnow-access-control-web');
 
 const encryptedHref = `${baseUrl}/samples/axisnow/encrypted/META-INF/container.xml`;
 const decryptedHref = `${baseUrl}/samples/axisnow/decrypted/META-INF/container.xml`;
