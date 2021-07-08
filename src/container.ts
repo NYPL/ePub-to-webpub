@@ -42,8 +42,10 @@ const handler = async (req: IncomingMessage, resp: ServerResponse) => {
   }
 };
 
-createServer(async (req, resp) => {
-  await handler(req, resp);
-}).listen(5000);
+if (process.env.NODE_ENV !== 'test') {
+  createServer(async (req, resp) => {
+    await handler(req, resp);
+  }).listen(5000);
+}
 
 module.exports = { handler };
