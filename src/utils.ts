@@ -20,9 +20,9 @@ export function safelyGet<T>(arr: T[], index: number): T | undefined {
  */
 export function validateParam(
   name: string,
-  query: Record<string, string | string[]>
+  query: Record<string, string | string[] | undefined> | null
 ): string {
-  const param = query[name];
+  const param = query ? query[name] : undefined;
   if (typeof param !== 'string') {
     throw new Error(`Parameter ${name} is not a string: ${param}`);
   }

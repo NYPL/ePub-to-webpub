@@ -1,8 +1,19 @@
 import { baseUrl } from './constants';
-import Decryptor from '@nypl-simplified-packages/axisnow-access-control-web';
 import path from 'path';
 import LocalFetcher from '../LocalFetcher';
 import Epub from '../Epub';
+
+/**
+ * Set the AXISNOW_DECRYPT variable based on whether the package is available.
+ */
+let Decryptor: any = undefined;
+try {
+  Decryptor = require('@nypl-simplified-packages/axisnow-access-control-web');
+} catch (e) {
+  console.log(
+    'AxisNow Decryptor package is not available, skipping encryption tests'
+  );
+}
 
 const encryptedHref = `${baseUrl}/samples/axisnow/encrypted/META-INF/container.xml`;
 const decryptedHref = `${baseUrl}/samples/axisnow/decrypted/META-INF/container.xml`;
