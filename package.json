@@ -28,7 +28,9 @@
     "release": "np"
   },
   "bin": {
-    "epub-to-webpub": "./dist/cli/index.js"
+    "epub-to-webpub": "./dist/cli/index.js",
+    "download-webpub": "./dist/cli/download-webpub.js",
+    "decrypt-webpub": "./dist/cli/decrypt-webpub.js"
   },
   "np": {
     "branch": "main"
@@ -46,7 +48,9 @@
       "src/index.ts",
       "src/cli/index.ts",
       "src/lambda.ts",
-      "src/container.ts"
+      "src/container.ts",
+      "src/cli/download-webpub.ts",
+      "src/cli/decrypt-webpub.ts"
     ]
   },
   "peerDependencies": {

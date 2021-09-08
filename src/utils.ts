@@ -28,3 +28,21 @@ export function validateParam(
   }
   return param;
 }
+
+export function getEpubType(path: string) {
+  const remote = isRemote(path);
+  const exploded = isExploded(path);
+  // remote exploded
+  if (remote && exploded) return 'remote-exploded';
+  // local exploded
+  if (!remote && exploded) return 'local-exploded';
+  // remote or local packaged
+  throw new Error('Packaged EPUBS not yet supported');
+}
+
+function isRemote(path: string) {
+  return path.startsWith('http://') || path.startsWith('https://');
+}
+function isExploded(path: string) {
+  return path.endsWith('.xml');
+}
