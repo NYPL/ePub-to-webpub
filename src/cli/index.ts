@@ -9,6 +9,7 @@ import prettier from 'prettier';
 import Epub from '../Epub';
 import LocalFetcher from '../LocalFetcher';
 import RemoteFetcher from '../RemoteFetcher';
+import { getEpubType } from '../utils';
 const pkg = require('../../package.json');
 
 const log = (info: string, arg?: string) =>
@@ -74,21 +75,3 @@ sade('epub-to-webpub <path> <dest>', true)
     spinner.succeed();
   })
   .parse(process.argv);
-
-function getEpubType(path: string) {
-  const remote = isRemote(path);
-  const exploded = isExploded(path);
-  // remote exploded
-  if (remote && exploded) return 'remote-exploded';
-  // local exploded
-  if (!remote && exploded) return 'local-exploded';
-  // remote or local packaged
-  throw new Error('Packaged EPUBS not yet supported');
-}
-
-function isRemote(path: string) {
-  return path.startsWith('http://') || path.startsWith('https://');
-}
-function isExploded(path: string) {
-  return path.endsWith('.xml');
-}

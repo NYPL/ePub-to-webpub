@@ -108,7 +108,6 @@ async function downloadWebpub(
   baseUrl: string,
   destination: string
 ): Promise<void> {
-  // const manifest = await fetchJson<WebpubManifest>(manifestUrl);
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const manifest: WebpubManifest = require(manifestUrl);
 
