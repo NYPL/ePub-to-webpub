@@ -38,6 +38,13 @@ export default class LocalFetcher extends Fetcher {
     return Promise.resolve(fs.readFileSync(path, 'utf-8'));
   }
 
+  async getOptionalFileStr(path: string): Promise<string | undefined> {
+    if (!fs.existsSync(path)) {
+      return undefined;
+    }
+    return this.getFileStr(path);
+  }
+
   /**
    * You must pass this function the absolute path to the image
    */

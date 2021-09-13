@@ -14,6 +14,9 @@ export const handlers = [
   rest.get(`${baseUrl}/*`, async (req, res, ctx) => {
     const filePath = path.resolve(__dirname, `..${req.url.pathname}`);
 
+    if (!fs.existsSync(filePath)) {
+      return res(ctx.status(404));
+    }
     // we need to know the file type so we can set it in the response
     const fileType = await FileType.fromFile(filePath);
     const buffer = fs.readFileSync(filePath);

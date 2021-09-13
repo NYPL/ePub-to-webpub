@@ -37,6 +37,14 @@ export default class RemoteFetcher extends Fetcher {
     return await result.text();
   }
 
+  async getOptionalFileStr(url: string) {
+    const response = await fetch(url);
+    if (response.ok) {
+      return await response.text();
+    }
+    return undefined;
+  }
+
   getOpfPath(relativeOpfPath: string): string {
     return this.resolvePath(this.folderPath, relativeOpfPath);
   }
