@@ -42,13 +42,21 @@ export default class Epub {
     // the encryption file tells you which resources are encrypted
     public readonly encryptionDoc: Encryption | undefined,
     // pass a decryptor to have all files except container.xml and opf run through it
-    public readonly decryptor?: Decryptor
+    public readonly decryptor?: Decryptor,
+    // if it is an AxisNow publication, we will set a custom encryption scheme.
+    public readonly isAxisNow?: boolean
   ) {}
 
   public static async build(
     containerXmlPath: string,
     fetcher: Fetcher,
-    decryptor?: Decryptor
+    {
+      decryptor,
+      isAxisNow,
+    }: {
+      decryptor?: Decryptor;
+      isAxisNow?: boolean;
+    } = { decryptor: undefined, isAxisNow: false }
   ) {
     const container = Epub.parseContainer(
       await fetcher.getFileStr(containerXmlPath)
@@ -91,7 +99,8 @@ export default class Epub {
       ncx,
       navDoc,
       encryptionDoc,
-      decryptor
+      decryptor,
+      isAxisNow
     );
   }
 

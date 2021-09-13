@@ -32,9 +32,13 @@ export default async function epubToWebpub(
     });
     const containerXmlHref = decryptor?.containerUrl;
     const fetcher = new RemoteFetcher(containerXmlHref, decryptor);
-    const epub = await Epub.build(containerXmlHref, fetcher, decryptor);
+    const epub = await Epub.build(containerXmlHref, fetcher, {
+      decryptor,
+      isAxisNow: true,
+    });
     const manifest = await epub.webpubManifest;
     res.status(200).json(manifest);
+    return;
   } catch (e: unknown) {
     if (e instanceof Error) {
       console.error(e);
@@ -50,5 +54,6 @@ export default async function epubToWebpub(
       detail: 'Unknown Error',
       status: 500,
     });
+    return;
   }
 }

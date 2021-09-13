@@ -8,6 +8,7 @@ export default function getLinkEncryption(epub: Epub, relativePath: string) {
   );
   const algorithm = encryptionData?.EncryptionMethod.Algorithm;
   let encryption: EPUBExtensionLinkProperties['encrypted'] = undefined;
+  const scheme = encryptionData?.KeyInfo.RetrievalMethod.Type;
 
   /**
    * @TODO - we currently assume the encryption scheme is AxisNow, not supporting
@@ -15,10 +16,17 @@ export default function getLinkEncryption(epub: Epub, relativePath: string) {
    * using.
    */
   if (algorithm) {
-    encryption = {
-      algorithm,
-      scheme: AxisNowEncryptionScheme,
-    };
+    if (epub.isAxisNow) {
+      encryption = {
+        algorithm,
+        scheme: AxisNowEncryptionScheme,
+      };
+    } else {
+      encryption = {
+        algorithm,
+        scheme,
+      };
+    }
   }
 
   return encryption;

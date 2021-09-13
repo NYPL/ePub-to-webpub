@@ -20,7 +20,8 @@ sade('epub-to-webpub <path> <dest>', true)
     'Convert a local or remote exploded EPUB to a WebpubManifest JSON file.'
   )
   .example('./moby-dick/META-INF/container.xml ./outputs/manifest.json')
-  .action(async (path: string, dest: string) => {
+  .option('--axisnow', 'Override encryption scheme with custom AxisNow value')
+  .action(async (path: string, dest: string, opts: { axisnow: boolean }) => {
     console.log(
       chalk.red(
         `
@@ -47,12 +48,11 @@ sade('epub-to-webpub <path> <dest>', true)
 
     try {
       spinner.start(log('Reading EPUB from: ', path));
-      console.log('PATH', path);
       const fetcher =
         epubType === 'local-exploded'
           ? new LocalFetcher(path)
           : new RemoteFetcher(path);
-      const epub = await Epub.build(path, fetcher);
+      const epub = await Epub.build(path, fetcher, { isAxisNow: opts.axisnow });
       spinner.succeed();
       spinner.start(log('Converting to Webpub...'));
       const manifest = await epub.webpubManifest;
