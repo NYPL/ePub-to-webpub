@@ -20,81 +20,78 @@ sade('decrypt-webpub <manifest> <dest> <book_vault_uuid> <isbn>', true)
   .example(
     './outputs/axisnow.json outputs/dickens-axisnow/encrypted 9FD5E27H-73C8-4156-A623-FCDF66020BF9 9781682280652'
   )
-  .action(
-    async (
-      manifestPath: string,
-      destination: string,
-      book_vault_uuid: string,
-      isbn: string
-    ) => {
-      console.log(
-        chalk.red(
-          `
-  ███╗   ██╗██╗   ██╗██████╗ ██╗     
-  ████╗  ██║╚██╗ ██╔╝██╔══██╗██║     
-  ██╔██╗ ██║ ╚████╔╝ ██████╔╝██║     
-  ██║╚██╗██║  ╚██╔╝  ██╔═══╝ ██║     
-  ██║ ╚████║   ██║   ██║     ███████╗
-  ╚═╝  ╚═══╝   ╚═╝   ╚═╝     ╚══════╝
-  `,
-          chalk.red.bold`
-     Webpub Decryptor 
-  `
-        )
-      );
-      const spinner = ora('Resolving decryptor package');
-      const manifestUrl = path.resolve(manifestPath);
-      const output = path.resolve(destination);
-      spinner.info(log('Reading manifest from: ', manifestUrl));
-      spinner.info(log('Destination folder: ', output));
-      spinner.info(log('book_vault_uuid: ', book_vault_uuid));
-      spinner.info(log('isbn: ', isbn));
-      let decryptor: Decryptor | undefined = undefined;
-      try {
-        const Decryptor =
-          require('@nypl-simplified-packages/axisnow-access-control-web').default;
-        decryptor = await Decryptor.createDecryptor({ book_vault_uuid, isbn });
-      } catch (e) {
-        throw new Error('AxisNow Decryptor package is not available.');
-      }
-      if (typeof decryptor === 'undefined') {
-        throw new Error('Could not instantiate decryptor');
-      }
-
-      spinner.start('Decrypting files...');
-
-      // eslint-disable-next-line @typescript-eslint/no-var-requires
-      const manifest: WebpubManifest = require(manifestUrl);
-
-      const resources =
-        manifest.resources?.map((res) =>
-          decryptLink(res, manifestUrl, decryptor!, output)
-        ) ?? [];
-
-      const readingOrder = manifest.readingOrder.map((chapt) =>
-        decryptLink(chapt, manifestUrl, decryptor!, output)
-      );
-
-      await Promise.all([...resources, ...readingOrder]);
-      spinner.succeed();
-
-      spinner.start('Writing new manifest.json');
-
-      manifest.readingOrder = manifest.readingOrder.map(
-        removeEncryptionProperty
-      );
-      manifest.resources = manifest.resources?.map(removeEncryptionProperty);
-
-      const json = JSON.stringify(manifest);
-      await writeFile(output, 'manifest.json', json);
-      spinner.succeed();
-
-      spinner.start('Success!');
-      spinner.succeed();
-    }
-  )
+  .action(decryptWebpub)
   .parse(process.argv);
 
+export default async function decryptWebpub(
+  manifestPath: string,
+  destination: string,
+  book_vault_uuid: string,
+  isbn: string
+) {
+  console.log(
+    chalk.red(
+      `
+███╗   ██╗██╗   ██╗██████╗ ██╗     
+████╗  ██║╚██╗ ██╔╝██╔══██╗██║     
+██╔██╗ ██║ ╚████╔╝ ██████╔╝██║     
+██║╚██╗██║  ╚██╔╝  ██╔═══╝ ██║     
+██║ ╚████║   ██║   ██║     ███████╗
+╚═╝  ╚═══╝   ╚═╝   ╚═╝     ╚══════╝
+`,
+      chalk.red.bold`
+   Webpub Decryptor 
+`
+    )
+  );
+  const spinner = ora('Resolving decryptor package');
+  const manifestUrl = path.resolve(manifestPath);
+  const output = path.resolve(destination);
+  spinner.info(log('Reading manifest from: ', manifestUrl));
+  spinner.info(log('Destination folder: ', output));
+  spinner.info(log('book_vault_uuid: ', book_vault_uuid));
+  spinner.info(log('isbn: ', isbn));
+  let decryptor: Decryptor | undefined = undefined;
+  try {
+    const Decryptor =
+      require('@nypl-simplified-packages/axisnow-access-control-web').default;
+    decryptor = await Decryptor.createDecryptor({ book_vault_uuid, isbn });
+  } catch (e) {
+    throw new Error('AxisNow Decryptor package is not available.');
+  }
+  if (typeof decryptor === 'undefined') {
+    throw new Error('Could not instantiate decryptor');
+  }
+
+  spinner.start('Decrypting files...');
+
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const manifest: WebpubManifest = require(manifestUrl);
+
+  const resources =
+    manifest.resources?.map((res) =>
+      decryptLink(res, manifestUrl, decryptor!, output)
+    ) ?? [];
+
+  const readingOrder = manifest.readingOrder.map((chapt) =>
+    decryptLink(chapt, manifestUrl, decryptor!, output)
+  );
+
+  await Promise.all([...resources, ...readingOrder]);
+  spinner.succeed();
+
+  spinner.start('Writing new manifest.json');
+
+  manifest.readingOrder = manifest.readingOrder.map(removeEncryptionProperty);
+  manifest.resources = manifest.resources?.map(removeEncryptionProperty);
+
+  const json = JSON.stringify(manifest);
+  await writeFile(output, 'manifest.json', json);
+  spinner.succeed();
+
+  spinner.start('Success!');
+  spinner.succeed();
+}
 /**
  * Removes the link.properties.encrypted key, because the files are now decrypted
  */

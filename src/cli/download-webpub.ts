@@ -19,43 +19,43 @@ sade('download-webpub <manifest> <base> <dest>', true)
   .example(
     './outputs/axisnow.json https://node.axisnow.com/content/stream/9781682280652/ outputs/dickens-axisnow/encrypted'
   )
-  .action(
-    async (
-      manifestPath: string,
-      baseUrl: string,
-      destination: string,
-      book_vault_uuid?: string,
-      isbn?: string
-    ) => {
-      console.log(
-        chalk.red(
-          `
-  ███╗   ██╗██╗   ██╗██████╗ ██╗     
-  ████╗  ██║╚██╗ ██╔╝██╔══██╗██║     
-  ██╔██╗ ██║ ╚████╔╝ ██████╔╝██║     
-  ██║╚██╗██║  ╚██╔╝  ██╔═══╝ ██║     
-  ██║ ╚████║   ██║   ██║     ███████╗
-  ╚═╝  ╚═══╝   ╚═╝   ╚═╝     ╚══════╝
-  `,
-          chalk.red.bold`
-     Webpub Downloader 
-  `
-        )
-      );
-      const spinner = ora('Downloading Webpub');
-      const manifestUrl = path.resolve(manifestPath);
-      const output = path.resolve(destination);
-      spinner.info(log('Reading manifest from: ', manifestUrl));
-      spinner.info(log('Using Base URL: ', baseUrl));
-      spinner.info(log('Destination folder: ', output));
-
-      spinner.start('Downloading files...');
-      downloadWebpub(manifestUrl, baseUrl, output).then(() => {
-        spinner.succeed(log(`Done.`));
-      });
-    }
-  )
+  .action(downloadWebpubCLI)
   .parse(process.argv);
+
+export default async function downloadWebpubCLI(
+  manifestPath: string,
+  baseUrl: string,
+  destination: string,
+  book_vault_uuid?: string,
+  isbn?: string
+) {
+  console.log(
+    chalk.red(
+      `
+███╗   ██╗██╗   ██╗██████╗ ██╗     
+████╗  ██║╚██╗ ██╔╝██╔══██╗██║     
+██╔██╗ ██║ ╚████╔╝ ██████╔╝██║     
+██║╚██╗██║  ╚██╔╝  ██╔═══╝ ██║     
+██║ ╚████║   ██║   ██║     ███████╗
+╚═╝  ╚═══╝   ╚═╝   ╚═╝     ╚══════╝
+`,
+      chalk.red.bold`
+   Webpub Downloader 
+`
+    )
+  );
+  const spinner = ora('Downloading Webpub');
+  const manifestUrl = path.resolve(manifestPath);
+  const output = path.resolve(destination);
+  spinner.info(log('Reading manifest from: ', manifestUrl));
+  spinner.info(log('Using Base URL: ', baseUrl));
+  spinner.info(log('Destination folder: ', output));
+
+  spinner.start('Downloading files...');
+  downloadWebpub(manifestUrl, baseUrl, output).then(() => {
+    spinner.succeed(log(`Done.`));
+  });
+}
 
 async function downloadLink(
   link: ReadiumLink,
