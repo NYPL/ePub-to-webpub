@@ -30,4 +30,10 @@ export default abstract class Fetcher {
   abstract getImageDimensions(
     path: string
   ): Promise<ImageDimensions | undefined>;
+
+  /**
+   * For the time being, we assume that encryption.xml is located
+   * as a sibling of container.xml
+   */
+  abstract getEncryptionPath(containerXmlPath: string): string;
 }

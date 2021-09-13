@@ -62,4 +62,8 @@ export default class RemoteFetcher extends Fetcher {
     }
     return undefined;
   }
+
+  getEncryptionPath(containerXmlPath: string) {
+    return new URL('encryption.xml', containerXmlPath).toString();
+  }
 }

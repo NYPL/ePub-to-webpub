@@ -1,6 +1,7 @@
 import { Container } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/container';
 import { OPF } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf';
 import { NCX } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/ncx';
+import { Encryption } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/encryption';
 import { DCMetadata } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-dc-metadata';
 import { Metafield } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-metafield';
 import { XML } from 'r2-utils-js/dist/es8-es2017/src/_utils/xml-js-mapper';
@@ -38,6 +39,8 @@ export default class Epub {
     // EPUB 2 uses NCX, EPUB 3 uses NavDoc
     public readonly ncx: NCX | undefined,
     public readonly navDoc: Document | undefined,
+    // the encryption file tells you which resources are encrypted
+    public readonly encryptionDoc: Encryption | undefined,
     // pass a decryptor to have all files except container.xml and opf run through it
     public readonly decryptor?: Decryptor
   ) {}
@@ -75,6 +78,10 @@ export default class Epub {
     const navDocStr = await Epub.decryptStr(navDocBuffer, decryptor);
     const navDoc = Epub.parseNavDoc(navDocStr);
 
+    const encryptionPath = fetcher.getEncryptionPath(containerXmlPath);
+    const encryptionStr = await fetcher.getFileStr(encryptionPath);
+    const encryptionDoc = Epub.parseEncryptionDoc(encryptionStr);
+
     return new Epub(
       fetcher,
       containerXmlPath,
@@ -83,6 +90,7 @@ export default class Epub {
       opf,
       ncx,
       navDoc,
+      encryptionDoc,
       decryptor
     );
   }
@@ -208,6 +216,12 @@ export default class Epub {
 
   static parseNavDoc(navDocStr: string | undefined) {
     return navDocStr ? new DOMParser().parseFromString(navDocStr) : undefined;
+  }
+
+  static parseEncryptionDoc(encryptionStr: string | undefined) {
+    return encryptionStr
+      ? Epub.parseXmlString<Encryption>(encryptionStr, Encryption)
+      : undefined;
   }
 
   /**

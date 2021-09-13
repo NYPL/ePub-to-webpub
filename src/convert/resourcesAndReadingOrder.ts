@@ -1,6 +1,7 @@
 import { Manifest } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-manifest';
 import Epub from '../Epub';
 import { ReadiumLink } from '../WebpubManifestTypes/ReadiumLink';
+import getLinkEncryption from './encryption';
 
 /**
  * The readingOrder lists the resources of the publication in the reading order
@@ -77,6 +78,9 @@ async function extractResources(epub: Epub): Promise<LinkWithId[]> {
  *
  * EPUB 2 files do not have properties.
  *
+ * This will also extract encryption info from the encryption.xml file to include
+ * in the resulting ReadiumLink
+ *
  * This function is curried so we can pass it an epub once and then use it in a map
  * function.
  *
@@ -97,6 +101,11 @@ const manifestToLink =
       type: manifest.MediaType,
       id: manifest.ID,
     };
+
+    const enc = getLinkEncryption(epub, relativePath);
+    if (enc) {
+      link.properties = { encrypted: enc };
+    }
 
     const linkWithProperties = await addEpub3Properties(
       epub,
