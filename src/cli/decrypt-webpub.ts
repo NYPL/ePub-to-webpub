@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 import fs from 'fs';
-import https from 'https';
 import path from 'path';
 import { ReadiumLink } from '../WebpubManifestTypes/ReadiumLink';
 import { WebpubManifest } from '../WebpubManifestTypes/WebpubManifest';
@@ -9,8 +8,8 @@ import chalk from 'chalk';
 import sade from 'sade';
 import ora from 'ora';
 import type Decryptor from '@nypl-simplified-packages/axisnow-access-control-web';
+import { AxisNowEncryptionScheme } from '../constants';
 const pkg = require('../../package.json');
-import fetch from 'node-fetch';
 
 const log = (info: string, arg?: string) =>
   `${chalk.bold(info)}${arg ? chalk.blue(arg) : ''}`;
@@ -67,27 +66,47 @@ sade('decrypt-webpub <manifest> <dest> <book_vault_uuid> <isbn>', true)
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const manifest: WebpubManifest = require(manifestUrl);
 
-      // console.log(manifest.readingOrder[0]);
+      const resources =
+        manifest.resources?.map((res) =>
+          decryptLink(res, manifestUrl, decryptor!, output)
+        ) ?? [];
 
-      for (const link of manifest.readingOrder) {
-        await decryptLink(link, manifestUrl, decryptor!, output);
-      }
+      const readingOrder = manifest.readingOrder.map((chapt) =>
+        decryptLink(chapt, manifestUrl, decryptor!, output)
+      );
 
-      // const resources =
-      //   manifest.resources?.map((res) =>
-      //     decryptLink(res, manifestUrl, decryptor!, destination)
-      //   ) ?? [];
+      await Promise.all([...resources, ...readingOrder]);
+      spinner.succeed();
 
-      // const readingOrder = manifest.readingOrder.map((chapt) =>
-      //   decryptLink(chapt, manifestUrl, decryptor!, destination)
-      // );
+      spinner.start('Writing new manifest.json');
 
-      // await Promise.all([...resources, ...readingOrder]);
+      manifest.readingOrder = manifest.readingOrder.map(
+        removeEncryptionProperty
+      );
+      manifest.resources = manifest.resources?.map(removeEncryptionProperty);
 
-      spinner.succeed('Done.');
+      const json = JSON.stringify(manifest);
+      await writeFile(output, 'manifest.json', json);
+      spinner.succeed();
+
+      spinner.start('Success!');
+      spinner.succeed();
     }
   )
   .parse(process.argv);
+
+/**
+ * Removes the link.properties.encrypted key, because the files are now decrypted
+ */
+function removeEncryptionProperty(link: ReadiumLink): ReadiumLink {
+  if (link.properties?.encrypted) {
+    return {
+      ...link,
+      properties: { ...link.properties, encrypted: undefined },
+    };
+  }
+  return link;
+}
 
 async function decryptLink(
   link: ReadiumLink,
@@ -96,15 +115,18 @@ async function decryptLink(
   destination: string
 ) {
   const inPath = path.resolve(path.dirname(manifestUrl), link.href);
-  console.log('DECRYPTING', inPath);
   // read the file
-  const readFile = await fs.promises.readFile(inPath);
+  const file = await fs.promises.readFile(inPath);
 
-  // decrypt
-  const decrypted = await decryptor.decrypt(readFile);
-  console.log('DECRYPTED.');
-  // write it to the destination
-  writeFile(destination, link.href, decrypted);
+  // only decrypt links that are detected to be AxisNow encrypted
+  if (link?.properties?.encrypted?.scheme === AxisNowEncryptionScheme) {
+    // decrypt
+    const decrypted = await decryptor.decrypt(file);
+    // write it to the destination
+    await writeFile(destination, link.href, decrypted);
+  } else {
+    await writeFile(destination, link.href, file);
+  }
 }
 
 async function writeFile(
@@ -118,5 +140,4 @@ async function writeFile(
     mode: 0o777,
   });
   await fs.promises.writeFile(dest, file);
-  console.log('wrote file to', dest);
 }

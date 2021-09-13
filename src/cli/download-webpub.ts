@@ -8,7 +8,6 @@ import { WebpubManifest } from '../WebpubManifestTypes/WebpubManifest';
 import chalk from 'chalk';
 import sade from 'sade';
 import ora from 'ora';
-import Decryptor from '@nypl-simplified-packages/axisnow-access-control-web';
 const pkg = require('../../package.json');
 
 const log = (info: string, arg?: string) =>
@@ -18,10 +17,7 @@ sade('download-webpub <manifest> <base> <dest>', true)
   .version(pkg.version)
   .describe('Download a remote webpub.')
   .example(
-    './outputs/axisnow.json https://node.axisnow.com/content/stream/9781682280652/META-INF/container.xml outputs/dickens-axisnow/encrypted'
-  )
-  .example(
-    './outputs/axisnow.json https://node.axisnow.com/content/stream/9781682280652/META-INF/container.xml outputs/dickens-axisnow/encrypted'
+    './outputs/axisnow.json https://node.axisnow.com/content/stream/9781682280652/ outputs/dickens-axisnow/encrypted'
   )
   .action(
     async (
