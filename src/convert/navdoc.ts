@@ -76,10 +76,14 @@ export const listItemToLink =
     if (typeof href !== 'string') {
       throw new Error(`TOC List item missing href: ${listItem.toString()}`);
     }
-    const relativePath = epub.fetcher.resolveRelativePath(epub.opfPath, href);
+    const resolvedHref = epub.fetcher.resolveHref(
+      epub.opfPath,
+      href,
+      epub.useRelativeHrefs
+    );
     const link: ReadiumLink = {
       title: anchorTitle,
-      href: relativePath,
+      href: resolvedHref,
     };
     // add children if there are any
     if (children && children.length > 0) link.children = children;

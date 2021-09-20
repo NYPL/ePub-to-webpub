@@ -91,9 +91,10 @@ const manifestToLink =
     if (!decodedHref) {
       throw new Error(`OPF Link missing HrefDecoded`);
     }
-    const relativePath = epub.fetcher.resolveRelativePath(
+    const relativePath = epub.fetcher.resolveHref(
       epub.opfPath,
-      decodedHref
+      decodedHref,
+      epub.useRelativeHrefs
     );
     const link: LinkWithId = {
       href: relativePath,
