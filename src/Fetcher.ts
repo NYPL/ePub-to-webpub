@@ -20,6 +20,8 @@ export default abstract class Fetcher {
   abstract resolvePath(from: string, to: string): string;
   // returns a path relative to the EPUB root
   abstract resolveRelativePath(from: string, to: string): string;
+  // resolves either a relative or absolute href depending on the flag
+  abstract resolveHref(from: string, to: string, relative: boolean): string;
 
   // this differs per fetcher because path.resolve(...) and new URL(...) don't work the same way
   abstract getOpfPath(relativeOpfPath: string): string;

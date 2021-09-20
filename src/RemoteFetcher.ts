@@ -55,6 +55,11 @@ export default class RemoteFetcher extends Fetcher {
   resolveRelativePath(from: string, to: string): string {
     return this.resolvePath(from, to).replace(this.folderPath, '');
   }
+  resolveHref(from: string, to: string, relative: boolean) {
+    return relative
+      ? this.resolveRelativePath(from, to)
+      : this.resolvePath(from, to);
+  }
 
   async getImageDimensions(relativePath: string) {
     const url = this.resolvePath(this.folderPath, relativePath);

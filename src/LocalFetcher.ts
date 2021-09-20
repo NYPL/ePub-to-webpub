@@ -29,6 +29,12 @@ export default class LocalFetcher extends Fetcher {
     const fullPath = this.resolvePath(from, to);
     return path.relative(this.folderPath, fullPath);
   }
+  resolveHref(from: string, to: string, relative: boolean) {
+    return relative
+      ? this.resolveRelativePath(from, to)
+      : this.resolvePath(from, to);
+  }
+
   async getArrayBuffer(path: string): Promise<ArrayBuffer> {
     const buffer = fs.readFileSync(path, null);
     return Promise.resolve(buffer);

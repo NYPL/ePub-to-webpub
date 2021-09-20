@@ -33,6 +33,9 @@ export default class Epub {
   constructor(
     public readonly fetcher: Fetcher,
     private readonly containerXmlPath: string,
+    // whether the resulting manifest should contain relative or absolute hrefs
+    // defaults to relative
+    public readonly useRelativeHrefs: boolean,
     // used to resolve items relative to the opf file
     public readonly opfPath: string,
     public readonly container: Container,
@@ -52,12 +55,14 @@ export default class Epub {
     containerXmlPath: string,
     fetcher: Fetcher,
     {
+      useRelativeHrefs,
       decryptor,
       isAxisNow,
     }: {
+      useRelativeHrefs: boolean;
       decryptor?: Decryptor;
       isAxisNow?: boolean;
-    } = { decryptor: undefined, isAxisNow: false }
+    } = { useRelativeHrefs: true, decryptor: undefined, isAxisNow: false }
   ) {
     const container = Epub.parseContainer(
       await fetcher.getFileStr(containerXmlPath)
@@ -126,6 +131,7 @@ export default class Epub {
     return new Epub(
       fetcher,
       containerXmlPath,
+      useRelativeHrefs,
       opfPath,
       container,
       opf,
