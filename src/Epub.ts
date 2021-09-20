@@ -59,7 +59,6 @@ export default class Epub {
       isAxisNow?: boolean;
     } = { decryptor: undefined, isAxisNow: false }
   ) {
-    console.log('BUILDING');
     const container = Epub.parseContainer(
       await fetcher.getFileStr(containerXmlPath)
     );
