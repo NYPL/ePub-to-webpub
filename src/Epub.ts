@@ -86,6 +86,8 @@ export default class Epub {
     const navDocStr = await Epub.decryptStr(navDocBuffer, decryptor);
     const navDoc = Epub.parseNavDoc(navDocStr);
 
+    // if there is no encryption path, the encryptionDoc will be undefined
+    // and the EPUB will be assumed unencrypted.
     const encryptionPath = fetcher.getEncryptionPath(containerXmlPath);
     const encryptionStr = await fetcher.getOptionalFileStr(encryptionPath);
     const encryptionDoc = Epub.parseEncryptionDoc(encryptionStr);

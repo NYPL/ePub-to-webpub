@@ -102,6 +102,7 @@ const manifestToLink =
       id: manifest.ID,
     };
 
+    // add encryption information if present
     const enc = getLinkEncryption(epub, relativePath);
     if (enc) {
       link.properties = { encrypted: enc };

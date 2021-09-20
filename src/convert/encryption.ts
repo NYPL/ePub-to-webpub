@@ -2,6 +2,10 @@ import { AxisNowEncryptionScheme } from '../constants';
 import Epub from '../Epub';
 import { EPUBExtensionLinkProperties } from '../WebpubManifestTypes/EpubExtension';
 
+/**
+ * Adds encryption information to the resource link if there is any detected for this
+ * link in the epub.encryptionDoc
+ */
 export default function getLinkEncryption(epub: Epub, relativePath: string) {
   const encryptionData = epub.encryptionDoc?.EncryptedData.find(
     (data) => data.CipherData.CipherReference.URI === relativePath
