@@ -111,6 +111,9 @@ describe('listItemToLink', () => {
       resolveRelativePath: (from: string, to: string) => {
         return `OPS/${to}`;
       },
+      resolveHref: (from: string, to: string, relative: boolean = true) => {
+        return relative ? `OPS/${to}` : `https://domain.com/OPS/${to}`;
+      },
     },
   } as Epub;
 
