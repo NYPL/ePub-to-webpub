@@ -170,14 +170,6 @@ export default class Epub {
     return epubToManifest(this);
   }
 
-  static async getNcx(
-    opf: OPF,
-    opfPath: string,
-    encryptionDoc: Encryption | undefined,
-    fetcher: Fetcher,
-    isAxisNow: boolean | undefined
-  ) {}
-
   ///////////////////
   // METHODS FOR DESERIALIZING VALUES INTO IN-MEMORY CLASSES
   ///////////////////
