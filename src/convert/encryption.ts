@@ -1,7 +1,5 @@
 import { Encryption } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/encryption';
-import { EncryptedData } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/encryption-data';
 import { AxisNowEncryptionScheme } from '../constants';
-import Epub from '../Epub';
 import { EPUBExtensionLinkProperties } from '../WebpubManifestTypes/EpubExtension';
 
 /**
