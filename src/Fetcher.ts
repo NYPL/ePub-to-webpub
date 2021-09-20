@@ -27,7 +27,14 @@ export default abstract class Fetcher {
   // the following functions take absolute paths/hrefs
   abstract getArrayBuffer(path: string): Promise<ArrayBuffer>;
   abstract getFileStr(path: string): Promise<string>;
+  abstract getOptionalFileStr(path: string): Promise<string | undefined>;
   abstract getImageDimensions(
     path: string
   ): Promise<ImageDimensions | undefined>;
+
+  /**
+   * For the time being, we assume that encryption.xml is located
+   * as a sibling of container.xml
+   */
+  abstract getEncryptionPath(containerXmlPath: string): string;
 }
