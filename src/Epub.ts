@@ -12,6 +12,7 @@ import { WebpubManifest } from './WebpubManifestTypes/WebpubManifest';
 import { epubToManifest } from './convert';
 import Decryptor from '@nypl-simplified-packages/axisnow-access-control-web';
 import Fetcher from './Fetcher';
+import { getEncryptionInfo } from './convert/encryption';
 
 /**
  * This class represents a complete EPUB. It is abstract
@@ -65,32 +66,62 @@ export default class Epub {
     const opfPath = fetcher.getOpfPath(relativeOpfPath);
     const opf = await Epub.parseOpf(await fetcher.getFileStr(opfPath));
 
-    const relativeNcxPath = Epub.getNcxHref(opf);
-    const ncxPath = relativeNcxPath
-      ? fetcher.resolvePath(opfPath, relativeNcxPath)
-      : undefined;
-
-    const ncxBuffer = ncxPath
-      ? await fetcher.getArrayBuffer(ncxPath)
-      : undefined;
-    const ncxStr = await Epub.decryptStr(ncxBuffer, decryptor);
-    const ncx = Epub.parseNcx(ncxStr);
-
-    const relativeNavDocPath = Epub.getNavDocHref(opf);
-    const navDocPath = relativeNavDocPath
-      ? fetcher.resolvePath(opfPath, relativeNavDocPath)
-      : undefined;
-    const navDocBuffer = navDocPath
-      ? await fetcher.getArrayBuffer(navDocPath)
-      : undefined;
-    const navDocStr = await Epub.decryptStr(navDocBuffer, decryptor);
-    const navDoc = Epub.parseNavDoc(navDocStr);
-
     // if there is no encryption path, the encryptionDoc will be undefined
     // and the EPUB will be assumed unencrypted.
     const encryptionPath = fetcher.getEncryptionPath(containerXmlPath);
     const encryptionStr = await fetcher.getOptionalFileStr(encryptionPath);
     const encryptionDoc = Epub.parseEncryptionDoc(encryptionStr);
+
+    // ncx file
+    const relativeNcxPath = Epub.getNcxHref(opf);
+    const ncxPath = relativeNcxPath
+      ? fetcher.resolvePath(opfPath, relativeNcxPath)
+      : undefined;
+
+    let ncx: NCX | undefined = undefined;
+    if (ncxPath) {
+      // it is encrypted if there is an entry for it in encryption.xml
+      const ncxIsEncrypted = !!getEncryptionInfo(
+        encryptionDoc,
+        ncxPath,
+        isAxisNow
+      );
+      if (ncxIsEncrypted) {
+        const ncxBuffer = ncxPath
+          ? await fetcher.getArrayBuffer(ncxPath)
+          : undefined;
+        const ncxStr = await Epub.decryptStr(ncxBuffer, decryptor);
+        ncx = Epub.parseNcx(ncxStr);
+      } else {
+        const ncxStr = await fetcher.getFileStr(ncxPath);
+        ncx = Epub.parseNcx(ncxStr);
+      }
+    }
+
+    // navdoc file
+    const relativeNavDocPath = Epub.getNavDocHref(opf);
+    const navDocPath = relativeNavDocPath
+      ? fetcher.resolvePath(opfPath, relativeNavDocPath)
+      : undefined;
+
+    let navDoc: Document | undefined = undefined;
+    if (navDocPath) {
+      const isNavDocEncrypted = !!getEncryptionInfo(
+        encryptionDoc,
+        navDocPath,
+        isAxisNow
+      );
+      if (isNavDocEncrypted) {
+        const navDocBuffer = navDocPath
+          ? await fetcher.getArrayBuffer(navDocPath)
+          : undefined;
+        const navDocStr = await Epub.decryptStr(navDocBuffer, decryptor);
+        navDoc = Epub.parseNavDoc(navDocStr);
+      } else {
+        const navDocStr = await fetcher.getFileStr(navDocPath);
+        navDoc = Epub.parseNavDoc(navDocStr);
+      }
+    }
 
     return new Epub(
       fetcher,
@@ -267,6 +298,10 @@ export default class Epub {
   ): Promise<ArrayBuffer> {
     if (!decryptor) return buffer;
     return await decryptor.decrypt(new Uint8Array(buffer));
+  }
+
+  getLinkEncryption(relativePath: string) {
+    return getEncryptionInfo(this.encryptionDoc, relativePath, this.isAxisNow);
   }
 
   ///////////////////
