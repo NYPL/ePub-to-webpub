@@ -124,6 +124,17 @@ describe('listItemToLink', () => {
     });
   });
 
+  it('extracts absolute link from basic list item', () => {
+    expect(
+      listItemToLink({ ...epub, useRelativeHrefs: false } as Epub)(
+        basicListItem
+      )
+    ).toEqual({
+      title: 'Basic Title',
+      href: 'https://domain.com/OPS/basic-href',
+    });
+  });
+
   it('extracts link from nested list item', () => {
     expect(listItemToLink(epub)(listItemWithoutSpan)).toEqual({
       title: 'Parent',
@@ -131,6 +142,21 @@ describe('listItemToLink', () => {
       children: [
         { title: 'Child 1', href: 'OPS/child-1-href' },
         { title: 'Child 2', href: 'OPS/child-2-href' },
+      ],
+    });
+  });
+
+  it('extracts absolute link from nested list item', () => {
+    expect(
+      listItemToLink({ ...epub, useRelativeHrefs: false } as Epub)(
+        listItemWithoutSpan
+      )
+    ).toEqual({
+      title: 'Parent',
+      href: 'https://domain.com/OPS/parent-href',
+      children: [
+        { title: 'Child 1', href: 'https://domain.com/OPS/child-1-href' },
+        { title: 'Child 2', href: 'https://domain.com/OPS/child-2-href' },
       ],
     });
   });
