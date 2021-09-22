@@ -71,7 +71,6 @@ async function downloadLink(
         throw new Error(
           `Failed to download ${href} . Received ${res.statusCode}`
         );
-        reject();
       }
       const pth = path.resolve(__dirname, destination, link.href); //`${destination}${link.href}`;
       fs.promises
