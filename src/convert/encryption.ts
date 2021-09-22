@@ -1,9 +1,17 @@
+import { Encryption } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/encryption';
 import { AxisNowEncryptionScheme } from '../constants';
-import Epub from '../Epub';
 import { EPUBExtensionLinkProperties } from '../WebpubManifestTypes/EpubExtension';
 
-export default function getLinkEncryption(epub: Epub, relativePath: string) {
-  const encryptionData = epub.encryptionDoc?.EncryptedData.find(
+/**
+ * Adds encryption information to the resource link if there is any detected for this
+ * link in the epub.encryptionDoc
+ */
+export function getEncryptionInfo(
+  encryptionDoc: Encryption | undefined,
+  relativePath: string,
+  isAxisNow: boolean | undefined
+) {
+  const encryptionData = encryptionDoc?.EncryptedData.find(
     (data) => data.CipherData.CipherReference.URI === relativePath
   );
   const algorithm = encryptionData?.EncryptionMethod.Algorithm;
@@ -16,7 +24,7 @@ export default function getLinkEncryption(epub: Epub, relativePath: string) {
    * using.
    */
   if (algorithm) {
-    if (epub.isAxisNow) {
+    if (isAxisNow) {
       encryption = {
         algorithm,
         scheme: AxisNowEncryptionScheme,

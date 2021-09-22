@@ -28,7 +28,7 @@ export const navPointToLink =
     }
     const link: ReadiumLink = {
       title: point.NavLabel.Text,
-      href: epub.fetcher.resolveRelativePath(epub.opfPath, href),
+      href: epub.fetcher.resolveHref(epub.opfPath, href, epub.useRelativeHrefs),
     };
 
     // we cast this to make the type wider because it's wrong in r2-shared-js.

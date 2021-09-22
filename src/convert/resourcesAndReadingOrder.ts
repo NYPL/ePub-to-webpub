@@ -92,17 +92,23 @@ const manifestToLink =
     if (!decodedHref) {
       throw new Error(`OPF Link missing HrefDecoded`);
     }
+    const href = epub.fetcher.resolveHref(
+      epub.opfPath,
+      decodedHref,
+      epub.useRelativeHrefs
+    );
     const relativePath = epub.fetcher.resolveRelativePath(
       epub.opfPath,
       decodedHref
     );
     const link: LinkWithId = {
-      href: relativePath,
+      href,
       type: manifest.MediaType,
       id: manifest.ID,
     };
 
-    const enc = getLinkEncryption(epub, relativePath);
+    // add encryption information if present
+    const enc = epub.getLinkEncryption(relativePath);
     if (enc) {
       link.properties = { encrypted: enc };
     }
