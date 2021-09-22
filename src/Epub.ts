@@ -128,10 +128,6 @@ export default class Epub {
       }
     }
 
-    const encryptionPath = fetcher.getEncryptionPath(containerXmlPath);
-    const encryptionStr = await fetcher.getOptionalFileStr(encryptionPath);
-    const encryptionDoc = Epub.parseEncryptionDoc(encryptionStr);
-
     return new Epub(
       fetcher,
       containerXmlPath,
