@@ -1,6 +1,7 @@
 import { Manifest } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-manifest';
 import Epub from '../Epub';
 import { ReadiumLink } from '../WebpubManifestTypes/ReadiumLink';
+import getLinkEncryption from './encryption';
 
 /**
  * The readingOrder lists the resources of the publication in the reading order

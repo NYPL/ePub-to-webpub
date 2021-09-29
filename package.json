@@ -28,7 +28,9 @@
     "release": "np"
   },
   "bin": {
-    "epub-to-webpub": "./dist/cli/index.js"
+    "epub-to-webpub": "./dist/cli/index.js",
+    "download-webpub": "./dist/cli/download-webpub.js",
+    "decrypt-webpub": "./dist/cli/decrypt-webpub.js"
   },
   "np": {
     "branch": "main"
@@ -50,7 +52,9 @@
       "src/index.ts",
       "src/cli/index.ts",
       "src/lambda.ts",
-      "src/container.ts"
+      "src/container.ts",
+      "src/cli/download-webpub.ts",
+      "src/cli/decrypt-webpub.ts"
     ]
   },
   "peerDependencies": {
@@ -110,7 +114,7 @@
     "@types/aws-lambda": "^8.10.77",
     "@types/xmldom": "^0.1.30",
     "image-size": "^0.9.7",
-    "node-fetch": "^2.6.1",
+    "node-fetch": "^2.6.2",
     "prettier": "2.3.1",
     "r2-shared-js": "^1.0.50",
     "r2-utils-js": "^1.0.24",
@@ -118,6 +122,6 @@
     "xpath": "^0.0.32"
   },
   "optionalDependencies": {
-    "@nypl-simplified-packages/axisnow-access-control-web": "^1.1.1"
+    "@nypl-simplified-packages/axisnow-access-control-web": "^1.3.0"
   }
 }
