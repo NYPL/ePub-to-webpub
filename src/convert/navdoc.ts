@@ -76,8 +76,13 @@ export const listItemToLink =
     if (typeof href !== 'string') {
       throw new Error(`TOC List item missing href: ${listItem.toString()}`);
     }
+    if (typeof epub.navDocPath !== 'string') {
+      throw new Error(
+        'Epub attempting to parse navdoc without navDocPath set.'
+      );
+    }
     const resolvedHref = epub.fetcher.resolveHref(
-      epub.opfPath,
+      epub.navDocPath,
       href,
       epub.useRelativeHrefs
     );

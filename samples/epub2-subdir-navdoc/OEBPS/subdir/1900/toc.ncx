@@ -1,0 +1,53 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<!DOCTYPE ncx PUBLIC '-//NISO//DTD ncx 2005-1//EN' 'http://www.daisy.org/z3986/2005/ncx-2005-1.dtd'>
+<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1" xml:lang="en">
+  <head>
+    <meta name="dtb:uid" content="http://www.gutenberg.org/2701"/>
+    <meta name="dtb:depth" content="2"/>
+    <meta name="dtb:generator" content="Ebookmaker 0.10.5 by Project Gutenberg"/>
+    <meta name="dtb:totalPageCount" content="0"/>
+    <meta name="dtb:maxPageNumber" content="0"/>
+  </head>
+  <docTitle>
+    <text>Moby Dick; Or, The Whale</text>
+  </docTitle>
+  <navMap>
+    <navPoint id="np-1" playOrder="1">
+      <navLabel>
+        <text>MOBY-DICK; or, THE WHALE.</text>
+      </navLabel>
+      <content src="@public@vhost@g@gutenberg@html@files@2701@2701-h@2701-h-0.htm.html#pgepubid00000"/>
+    </navPoint>
+    <navPoint id="np-2" playOrder="2">
+      <navLabel>
+        <text>Original Transcriber’s Notes:</text>
+      </navLabel>
+      <content src="@public@vhost@g@gutenberg@html@files@2701@2701-h@2701-h-0.htm.html#pgepubid00001"/>
+    </navPoint>
+    <navPoint id="np-3" playOrder="3">
+      <navLabel>
+        <text>ETYMOLOGY.</text>
+      </navLabel>
+      <content src="@public@vhost@g@gutenberg@html@files@2701@2701-h@2701-h-0.htm.html#pgepubid00002"/>
+      <navPoint id="np-4" playOrder="4">
+        <navLabel>
+          <text>(Supplied by a Late Consumptive Usher to a Grammar School.)</text>
+        </navLabel>
+        <content src="@public@vhost@g@gutenberg@html@files@2701@2701-h@2701-h-0.htm.html#pgepubid00003"/>
+      </navPoint>
+    </navPoint>
+    <navPoint id="np-5" playOrder="5">
+      <navLabel>
+        <text>EXTRACTS. (Supplied by a Sub-Sub-Librarian).</text>
+      </navLabel>
+      <content src="@public@vhost@g@gutenberg@html@files@2701@2701-h@2701-h-0.htm.html#pgepubid00004"/>
+      <navPoint id="np-6" playOrder="6">
+        <navLabel>
+          <text>EXTRACTS.</text>
+        </navLabel>
+        <content src="@public@vhost@g@gutenberg@html@files@2701@2701-h@2701-h-0.htm.html#pgepubid00005"/>
+      </navPoint>
+    </navPoint>
+  </navMap>
+</ncx>

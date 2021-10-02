@@ -45,7 +45,9 @@ export default class Epub {
     public readonly container: Container,
     public readonly opf: OPF,
     // EPUB 2 uses NCX, EPUB 3 uses NavDoc
+    public readonly ncxPath: string | undefined,
     public readonly ncx: NCX | undefined,
+    public readonly navDocPath: string | undefined,
     public readonly navDoc: Document | undefined,
     // the encryption file tells you which resources are encrypted
     public readonly encryptionDoc: Encryption | undefined,
@@ -141,7 +143,9 @@ export default class Epub {
       opfPath,
       container,
       opf,
+      ncxPath,
       ncx,
+      navDocPath,
       navDoc,
       encryptionDoc,
       decryptor,
