@@ -26,6 +26,10 @@ import { getEncryptionInfo } from './convert/encryption';
  * This class includes utilites used to parse the string file values
  * into in-memory representations and to extract values from the various
  * data structures. They will be used by all subclasses.
+ *
+ * @todo : The TOC file we use should be whatever is mentioned as the 'nav' property in the
+ *         oebps-package+xml file, according to leonard. We currently always look for both an
+ *         optional NCX file and an optional NavDoc, and then choose one based on if it is EPUB 2 or 3.
  */
 export default class Epub {
   static NCX_MEDIA_TYPE = 'application/x-dtbncx+xml';
