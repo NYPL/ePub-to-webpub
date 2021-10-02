@@ -26,9 +26,12 @@ export const navPointToLink =
     if (!href) {
       throw new Error(`NavPoint missing href: ${point}`);
     }
+    if (!epub.ncxPath) {
+      throw new Error('Attempting to parse NCX file without an ncxPath set');
+    }
     const link: ReadiumLink = {
       title: point.NavLabel.Text,
-      href: epub.fetcher.resolveHref(epub.opfPath, href, epub.useRelativeHrefs),
+      href: epub.fetcher.resolveHref(epub.ncxPath, href, epub.useRelativeHrefs),
     };
 
     // we cast this to make the type wider because it's wrong in r2-shared-js.
