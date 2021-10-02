@@ -58,16 +58,18 @@ export default class Epub {
   public static async build(
     containerXmlPath: string,
     fetcher: Fetcher,
-    {
-      useRelativeHrefs,
-      decryptor,
-      isAxisNow,
-    }: {
-      useRelativeHrefs: boolean;
+    options: {
+      useRelativeHrefs?: boolean;
       decryptor?: Decryptor;
       isAxisNow?: boolean;
-    } = { useRelativeHrefs: true, decryptor: undefined, isAxisNow: false }
+    } = {}
   ) {
+    const {
+      useRelativeHrefs = true,
+      decryptor = undefined,
+      isAxisNow = false,
+    } = options;
+
     const container = Epub.parseContainer(
       await fetcher.getFileStr(containerXmlPath)
     );

@@ -3,7 +3,7 @@ import ora from 'ora';
 import { LocalFetcher, RemoteFetcher, Epub } from '..';
 import { getEpubType } from '../utils';
 import prettier from 'prettier';
-import fs from 'fs';
+import fs from 'fs/promises';
 import { logError, log } from './log';
 
 export default async function epubToManifestCLI(
