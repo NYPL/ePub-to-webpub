@@ -213,7 +213,7 @@ describe('With NavDoc in a subdirectory', () => {
 
 const Epub2SubdirNCX = `${baseUrl}/samples/epub2-subdir-navdoc/META-INF/container.xml`;
 
-describe.only('With NCX in a subdirectory', () => {
+describe('With NCX in a subdirectory', () => {
   async function getManifest() {
     const fetcher = new RemoteFetcher(Epub2SubdirNCX);
     const epub = await Epub.build(Epub2SubdirNCX, fetcher, {});
