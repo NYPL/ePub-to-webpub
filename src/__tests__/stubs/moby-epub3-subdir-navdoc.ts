@@ -15,7 +15,14 @@ const mobyEpub3Manifest = {
       href: 'OPS/subdir/1902/chapter_001.xhtml',
     },
   ],
-  resources: [],
+  resources: [
+    {
+      href: 'OPS/subdir/1902/toc.xhtml',
+      type: 'application/xhtml+xml',
+      id: 'toc',
+      rel: 'contents',
+    },
+  ],
   toc: [
     {
       title: 'Chapter 1. Loomings.',
