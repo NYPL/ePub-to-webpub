@@ -157,6 +157,10 @@ const mobyEpub2Manifest = {
       href: 'OEBPS/1.css',
     },
     {
+      type: 'text/css',
+      href: 'OEBPS/subdir/1900/dummy.css',
+    },
+    {
       type: 'application/x-dtbncx+xml',
       href: 'OEBPS/toc.ncx',
     },

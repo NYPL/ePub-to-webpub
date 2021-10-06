@@ -1,0 +1,35 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<package xmlns:opf="http://www.idpf.org/2007/opf" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="id">
+  <metadata>
+    <dc:rights>Public domain in the USA.</dc:rights>
+    <dc:identifier opf:scheme="URI" id="id">http://www.gutenberg.org/2701</dc:identifier>
+    <dc:creator opf:file-as="Melville, Herman">Herman Melville</dc:creator>
+    <dc:title>Moby Dick; Or, The Whale</dc:title>
+    <dc:language xsi:type="dcterms:RFC4646">en</dc:language>
+    <dc:subject>Whaling -- Fiction</dc:subject>
+    <dc:subject>Sea stories</dc:subject>
+    <dc:subject>Psychological fiction</dc:subject>
+    <dc:subject>Ship captains -- Fiction</dc:subject>
+    <dc:subject>Adventure stories</dc:subject>
+    <dc:subject>Mentally ill -- Fiction</dc:subject>
+    <dc:subject>Ahab, Captain (Fictitious character) -- Fiction</dc:subject>
+    <dc:subject>Whales -- Fiction</dc:subject>
+    <dc:subject>Whaling ships -- Fiction</dc:subject>
+    <dc:date opf:event="publication">2001-07-01</dc:date>
+    <dc:date opf:event="conversion">2021-05-02T08:09:34.059641+00:00</dc:date>
+    <dc:source>https://www.gutenberg.org/files/2701/2701-h/2701-h.htm</dc:source>
+    <meta name="cover" content="item1"/>
+  </metadata>
+  <manifest>
+    <!--Image: 1200 x 1800 size=47634 -->
+    <item href="@export@sunsite@users@gutenbackend@cache@epub@2701@2701-cover.png" id="item1" media-type="image/png"/>
+    <!--Chunk: size=51630 Split on div-->
+    <item href="subdir/1900/@public@vhost@g@gutenberg@html@files@2701@2701-h@2701-h-0.htm.html" id="item5" media-type="application/xhtml+xml"/>
+    <item href="subdir/1900/toc.ncx" id="ncx" media-type="application/x-dtbncx+xml"/>
+    <item href="wrap0000.html" id="coverpage-wrapper" media-type="application/xhtml+xml"/>
+  </manifest>
+  <spine toc="ncx">
+    <itemref idref="item5" linear="yes"/>
+  </spine>
+</package>

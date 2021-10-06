@@ -27,6 +27,7 @@
     <item href="pgepub.css" id="item2" media-type="text/css"/>
     <item href="0.css" id="item3" media-type="text/css"/>
     <item href="1.css" id="item4" media-type="text/css"/>
+    <item href="subdir/1900/dummy.css" id="dummy-css" media-type="text/css"/>
     <!--Chunk: size=51630 Split on div-->
     <item href="@public@vhost@g@gutenberg@html@files@2701@2701-h@2701-h-0.htm.html" id="item5" media-type="application/xhtml+xml"/>
     <!--Chunk: size=58713 Split on div-->

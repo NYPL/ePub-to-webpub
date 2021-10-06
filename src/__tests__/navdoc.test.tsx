@@ -107,6 +107,7 @@ describe('listItemToLink', () => {
 
   const epub = {
     contentPath: 'OPS/',
+    navDocPath: 'OPS/',
     fetcher: {
       resolveRelativePath: (from: string, to: string) => {
         return `OPS/${to}`;
