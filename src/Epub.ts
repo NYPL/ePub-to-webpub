@@ -247,9 +247,10 @@ export default class Epub {
    * an <item> in the <manifest> with id === 'ncx
    */
   static getNcxHref(opf: OPF) {
-    return opf.Manifest.find(
-      (item) => item.ID === 'ncx' && item.MediaType === Epub.NCX_MEDIA_TYPE
-    )?.HrefDecoded;
+    const manifest = opf.Manifest.find(
+      (item) => item.MediaType === Epub.NCX_MEDIA_TYPE
+    );
+    return manifest?.HrefDecoded;
   }
 
   /**
