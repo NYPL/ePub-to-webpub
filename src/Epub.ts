@@ -135,7 +135,6 @@ export default class Epub {
         navDoc = Epub.parseNavDoc(navDocStr);
       }
     }
-    console.log(navDocPath);
 
     return new Epub(
       fetcher,
