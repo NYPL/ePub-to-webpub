@@ -92,11 +92,11 @@ export default class Epub {
       : undefined;
 
     let ncx: NCX | undefined = undefined;
-    if (ncxPath) {
+    if (ncxPath && relativeNcxPath) {
       // it is encrypted if there is an entry for it in encryption.xml
       const ncxIsEncrypted = !!getEncryptionInfo(
         encryptionDoc,
-        ncxPath,
+        relativeNcxPath,
         isAxisNow
       );
       if (ncxIsEncrypted) {
@@ -118,10 +118,10 @@ export default class Epub {
       : undefined;
 
     let navDoc: Document | undefined = undefined;
-    if (navDocPath) {
+    if (navDocPath && relativeNavDocPath) {
       const isNavDocEncrypted = !!getEncryptionInfo(
         encryptionDoc,
-        navDocPath,
+        relativeNavDocPath,
         isAxisNow
       );
       if (isNavDocEncrypted) {
@@ -135,6 +135,7 @@ export default class Epub {
         navDoc = Epub.parseNavDoc(navDocStr);
       }
     }
+    console.log(navDocPath);
 
     return new Epub(
       fetcher,
