@@ -9,9 +9,9 @@ import { ReadiumLink } from '../WebpubManifestTypes/ReadiumLink';
  * http://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.4.1
  */
 export function extractTocFromNcx(epub: Epub, ncx: NCX): ReadiumLink[] {
-  const points = ncx.Points;
+  const points = ncx.Points as NavPoint[] | undefined;
 
-  const toc = points.map(navPointToLink(epub));
+  const toc = points?.map(navPointToLink(epub)) ?? [];
 
   return toc;
 }
