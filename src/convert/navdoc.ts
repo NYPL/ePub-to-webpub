@@ -1,6 +1,6 @@
 import Epub from '../Epub';
 import { ReadiumLink } from '../WebpubManifestTypes/ReadiumLink';
-import xpath from 'xpath';
+import xpath, { SelectedValue } from 'xpath';
 import { DOMParser } from 'xmldom';
 
 /**
@@ -24,13 +24,22 @@ export function extractTocFromNavDoc(epub: Epub): ReadiumLink[] | undefined {
 
   // we only care about the toc nav currently. In the future we can
   // parse the other navs, like PageList
-  const tocListItems = select(
-    "/xhtml:html/xhtml:body//xhtml:nav[@*[name()='epub:type'] = 'toc']/xhtml:ol/xhtml:li",
-    navDoc
-  ) as Element[] | undefined; //?
+  let tocListItems: Element[] | undefined = undefined;
+  try {
+    tocListItems = select(
+      "/xhtml:html/xhtml:body//xhtml:nav[@*[name()='epub:type'] = 'toc']/xhtml:ol/xhtml:li",
+      navDoc
+    ).filter(isElement);
+  } catch (e) {
+    console.warn(`Xpath failed to parse NavDoc.`, e);
+  }
 
   const toc = tocListItems?.map(listItemToLink(epub));
   return toc;
+}
+
+function isElement(item: SelectedValue): item is Element {
+  return item instanceof Element;
 }
 
 /**
