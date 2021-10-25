@@ -173,34 +173,3 @@ describe('listItemToLink', () => {
     });
   });
 });
-
-describe('error states', () => {
-  const tocNavMissingItems = `
-    <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
-      <nav epub:type="lot">
-        <h2>List of tables, broken down into individual groups, one per major section of the publication content
-        </h2>
-        <ol>
-        </ol>
-      </nav>
-    </html>
-    `;
-
-  const epub = {
-    contentPath: 'OPS/',
-    navDocPath: 'OPS/',
-    fetcher: {
-      resolveRelativePath: (from: string, to: string) => {
-        return `OPS/${to}`;
-      },
-      resolveHref: (from: string, to: string, relative: boolean = true) => {
-        return relative ? `OPS/${to}` : `https://domain.com/OPS/${to}`;
-      },
-    },
-  } as Epub;
-
-  it('returns undefined toc when there are not list items in NavDoc', () => {
-    const toc = extractTocFromNavDoc(epub);
-    expect(toc).toBe(undefined);
-  });
-});

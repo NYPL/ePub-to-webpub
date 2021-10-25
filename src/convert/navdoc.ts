@@ -24,18 +24,28 @@ export function extractTocFromNavDoc(epub: Epub): ReadiumLink[] | undefined {
 
   // we only care about the toc nav currently. In the future we can
   // parse the other navs, like PageList
-  let tocListItems: Element[] | undefined = undefined;
-  try {
-    tocListItems = select(
-      "/xhtml:html/xhtml:body//xhtml:nav[@*[name()='epub:type'] = 'toc']/xhtml:ol/xhtml:li",
-      navDoc
-    ).filter(isElement);
-  } catch (e) {
-    console.warn(`Xpath failed to parse NavDoc.`, e);
-  }
+  const tocListItems = selectListItems(navDoc);
 
   const toc = tocListItems?.map(listItemToLink(epub));
   return toc;
+}
+
+/**
+ * Uses XPath Select to extract list items from a NavDoc.
+ */
+function selectListItems(navDoc: Document | undefined): Element[] | undefined {
+  if (!navDoc) return undefined;
+  try {
+    const items = select(
+      "/xhtml:html/xhtml:body//xhtml:nav[@*[name()='epub:type'] = 'toc']/xhtml:ol/xhtml:li",
+      navDoc
+    );
+    const filtered = items.filter(isElement);
+    return filtered.length === 0 ? undefined : filtered;
+  } catch (e) {
+    console.warn(`Xpath failed to parse NavDoc.`, e);
+    return undefined;
+  }
 }
 
 function isElement(item: SelectedValue): item is Element {

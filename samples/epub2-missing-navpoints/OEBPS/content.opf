@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='UTF-8'?>
+
+<package xmlns:opf="http://www.idpf.org/2007/opf" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.idpf.org/2007/opf" version="2.0" unique-identifier="id">
+  <metadata>
+    <dc:rights>Public domain in the USA.</dc:rights>
+    <dc:identifier opf:scheme="URI" id="id">http://www.gutenberg.org/2701</dc:identifier>
+    <dc:creator opf:file-as="Melville, Herman">Herman Melville</dc:creator>
+    <dc:title>Moby Dick; Or, The Whale</dc:title>
+    <dc:language xsi:type="dcterms:RFC4646">en</dc:language>
+   
+  </metadata>
+  <manifest>
+    <item href="@public@vhost@g@gutenberg@html@files@2701@2701-h@2701-h-0.htm.html" id="item5" media-type="application/xhtml+xml"/>
+    <item href="toc.ncx" id="ncx" media-type="application/x-dtbncx+xml"/>
+  </manifest>
+  <spine toc="ncx">
+    <itemref idref="item5" linear="yes"/>
+  </spine>
+  <guide>
+  </guide>
+</package>
