@@ -1,6 +1,6 @@
 import Epub from '../Epub';
 import { ReadiumLink } from '../WebpubManifestTypes/ReadiumLink';
-import xpath from 'xpath';
+import xpath, { SelectedValue } from 'xpath';
 import { DOMParser } from 'xmldom';
 
 /**
@@ -19,18 +19,37 @@ const select = xpath.useNamespaces({
  * whereas EPUB 2s put that info in the NCX file. This function
  * extracts TOC information for the manifest from the Nav Document
  */
-export function extractTocFromNavDoc(epub: Epub): ReadiumLink[] {
+export function extractTocFromNavDoc(epub: Epub): ReadiumLink[] | undefined {
   const { navDoc } = epub;
 
   // we only care about the toc nav currently. In the future we can
   // parse the other navs, like PageList
-  const tocListItems = select(
-    "/xhtml:html/xhtml:body//xhtml:nav[@*[name()='epub:type'] = 'toc']/xhtml:ol/xhtml:li",
-    navDoc
-  ) as Element[]; //?
+  const tocListItems = selectListItems(navDoc);
 
-  const toc = tocListItems.map(listItemToLink(epub));
+  const toc = tocListItems?.map(listItemToLink(epub));
   return toc;
+}
+
+/**
+ * Uses XPath Select to extract list items from a NavDoc.
+ */
+function selectListItems(navDoc: Document | undefined): Element[] | undefined {
+  if (!navDoc) return undefined;
+  try {
+    const items = select(
+      "/xhtml:html/xhtml:body//xhtml:nav[@*[name()='epub:type'] = 'toc']/xhtml:ol/xhtml:li",
+      navDoc
+    );
+    const filtered = items.filter(isElement);
+    return filtered.length === 0 ? undefined : filtered;
+  } catch (e) {
+    console.warn(`Xpath failed to parse NavDoc.`, e);
+    return undefined;
+  }
+}
+
+function isElement(item: SelectedValue): item is Element {
+  return typeof item === 'object';
 }
 
 /**
