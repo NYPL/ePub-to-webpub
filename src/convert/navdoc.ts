@@ -49,7 +49,7 @@ function selectListItems(navDoc: Document | undefined): Element[] | undefined {
 }
 
 function isElement(item: SelectedValue): item is Element {
-  return item instanceof Element;
+  return typeof item === 'object';
 }
 
 /**
