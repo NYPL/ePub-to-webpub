@@ -298,7 +298,7 @@ export default class Epub {
 
   /**
    * Takes a maybe file and a maybe decryptor and returns
-   * a string
+   * a decrypted string.
    */
   static async decryptStr(
     buffer: ArrayBuffer | undefined,
@@ -306,9 +306,12 @@ export default class Epub {
   ): Promise<string | undefined> {
     if (!buffer) return undefined;
     if (!decryptor) return new TextDecoder('utf-8').decode(buffer);
-    return await decryptor.decryptStr(new Uint8Array(buffer));
+    return await decryptor.decryptAsStr(new Uint8Array(buffer));
   }
 
+  /**
+   * Decrypts an ArrayBuffer and returns a decrypted Uint8Array
+   */
   static async decryptAb(
     buffer: ArrayBuffer,
     decryptor: Decryptor | undefined
