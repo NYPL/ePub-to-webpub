@@ -1,7 +1,6 @@
 import { Manifest } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-manifest';
 import Epub from '../Epub';
 import { ReadiumLink } from '../WebpubManifestTypes/ReadiumLink';
-import getLinkEncryption from './encryption';
 
 /**
  * The readingOrder lists the resources of the publication in the reading order
@@ -23,10 +22,8 @@ export async function resourcesAndReadingOrder(
     (acc, item) => {
       const link = allResources.find((link) => link.id === item.IDref);
       if (link) {
-        if (!item.Linear || item.Linear === 'yes') {
-          acc.push(link);
-          appearsInReadingOrder[link.id] = true;
-        }
+        acc.push(link);
+        appearsInReadingOrder[link.id] = true;
       }
       return acc;
     },
