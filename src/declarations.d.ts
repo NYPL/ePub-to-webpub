@@ -18,7 +18,6 @@ declare module '@nypl-simplified-packages/axisnow-access-control-web' {
     private constructor();
     getEntryUrl(): string;
     decrypt(encrypted: Uint8Array): Promise<Uint8Array>;
-    decryptStr(encrypted: Uint8Array): Promise<string>;
-    decryptUrl(resourceUrl: string): Promise<Uint8Array>;
+    decryptAsStr(encrypted: Uint8Array): Promise<string>;
   }
 }
