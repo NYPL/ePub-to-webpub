@@ -599,6 +599,7 @@ const mobyEpub3Manifest = {
     {
       type: 'application/xhtml+xml',
       href: 'http://remote.dev/samples/moby-epub3-exploded/OPS/toc.xhtml',
+      rel: 'contents',
     },
   ],
   resources: [

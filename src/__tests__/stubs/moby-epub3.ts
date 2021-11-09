@@ -599,6 +599,7 @@ const mobyEpub3Manifest = {
     {
       type: 'application/xhtml+xml',
       href: 'OPS/toc.xhtml',
+      rel: 'contents',
     },
   ],
   resources: [
