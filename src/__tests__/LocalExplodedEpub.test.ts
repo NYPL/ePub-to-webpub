@@ -45,7 +45,8 @@ describe('Moby EPUB 2 Exploded', () => {
       manifest.readingOrder,
       mobyEpub2Manifest.readingOrder,
       'href',
-      'type'
+      'type',
+      'rel'
     );
   });
 
@@ -57,7 +58,7 @@ describe('Moby EPUB 2 Exploded', () => {
       mobyEpub2Manifest.resources,
       'href',
       'type',
-      'type'
+      'rel'
     );
   });
 
@@ -100,7 +101,8 @@ describe('Moby EPUB 3 Exploded', () => {
       manifest.readingOrder,
       mobyEpub3Manifest.readingOrder,
       'href',
-      'type'
+      'type',
+      'rel'
     );
   });
 
@@ -110,7 +112,8 @@ describe('Moby EPUB 3 Exploded', () => {
       manifest.resources as any,
       mobyEpub3Manifest.resources,
       'href',
-      'type'
+      'type',
+      'rel'
     );
   });
 

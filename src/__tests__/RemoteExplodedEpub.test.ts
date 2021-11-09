@@ -97,7 +97,8 @@ describe('Moby EPUB 3 Exploded', () => {
       manifest.readingOrder,
       mobyEpub3Manifest.readingOrder,
       'href',
-      'type'
+      'type',
+      'rel'
     );
   });
 
@@ -108,7 +109,7 @@ describe('Moby EPUB 3 Exploded', () => {
       mobyEpub3Manifest.resources,
       'href',
       'type',
-      'type'
+      'rel'
     );
   });
 
@@ -153,7 +154,8 @@ describe('Absolute Hrefs', () => {
       manifest.readingOrder,
       mobyAbsoluteHrefs.readingOrder,
       'href',
-      'type'
+      'type',
+      'rel'
     );
   });
 
@@ -164,7 +166,7 @@ describe('Absolute Hrefs', () => {
       mobyAbsoluteHrefs.resources,
       'href',
       'type',
-      'type'
+      'rel'
     );
   });
 
@@ -201,7 +203,7 @@ describe('With NavDoc in a subdirectory', () => {
       epub3Subdir.resources,
       'href',
       'type',
-      'type'
+      'rel'
     );
   });
 
