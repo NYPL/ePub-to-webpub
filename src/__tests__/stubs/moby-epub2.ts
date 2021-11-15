@@ -139,6 +139,8 @@ const mobyEpub2Manifest = {
   resources: [
     {
       type: 'image/png',
+      height: 1800,
+      width: 1200,
       href: 'OEBPS/@export@sunsite@users@gutenbackend@cache@epub@2701@2701-cover.png',
     },
     {
