@@ -10,6 +10,8 @@
     <meta refines="#creator" property="role" scheme="marc:relators">aut</meta>
   </metadata>
   <manifest>
+     <item id="font.stix.regular" href="subdir/1902/fonts/STIXGeneral.otf"
+      media-type="application/vnd.ms-opentype"/>
     <item id="toc" properties="nav" href="subdir/1902/toc.xhtml" media-type="application/xhtml+xml"/>
     <item id="xchapter_001" href="subdir/1902/chapter_001.xhtml" media-type="application/xhtml+xml"/>
     <!-- 

@@ -26,6 +26,10 @@ const mobyEpub3Manifest = {
   readingOrder: [
     {
       type: 'application/xhtml+xml',
+      href: 'OPS/cover.xhtml',
+    },
+    {
+      type: 'application/xhtml+xml',
       href: 'OPS/titlepage.xhtml',
     },
     {
@@ -592,6 +596,11 @@ const mobyEpub3Manifest = {
       type: 'application/xhtml+xml',
       href: 'OPS/copyright.xhtml',
     },
+    {
+      type: 'application/xhtml+xml',
+      href: 'OPS/toc.xhtml',
+      rel: 'contents',
+    },
   ],
   resources: [
     {
@@ -609,15 +618,6 @@ const mobyEpub3Manifest = {
     {
       type: 'application/vnd.ms-opentype',
       href: 'OPS/fonts/STIXGeneralBolIta.otf',
-    },
-    {
-      type: 'application/xhtml+xml',
-      rel: 'contents',
-      href: 'OPS/toc.xhtml',
-    },
-    {
-      type: 'application/xhtml+xml',
-      href: 'OPS/cover.xhtml',
     },
     {
       type: 'image/jpeg',

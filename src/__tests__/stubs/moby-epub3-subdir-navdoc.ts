@@ -14,13 +14,16 @@ const mobyEpub3Manifest = {
       type: 'application/xhtml+xml',
       href: 'OPS/subdir/1902/chapter_001.xhtml',
     },
+    {
+      type: 'application/xhtml+xml',
+      href: 'OPS/subdir/1902/toc.xhtml',
+      rel: 'contents',
+    },
   ],
   resources: [
     {
-      href: 'OPS/subdir/1902/toc.xhtml',
-      type: 'application/xhtml+xml',
-      id: 'toc',
-      rel: 'contents',
+      type: 'application/vnd.ms-opentype',
+      href: 'OPS/subdir/1902/fonts/STIXGeneral.otf',
     },
   ],
   toc: [
