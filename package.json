@@ -1,6 +1,6 @@
 {
   "name": "@nypl/epub-to-webpub",
-  "version": "0.4.4",
+  "version": "1.0.0",
   "license": "MIT",
   "repository": "https://github.com/NYPL/ePub-to-webpub",
   "author": "kristojorg",
