@@ -19,14 +19,14 @@ const select = xpath.useNamespaces({
  * whereas EPUB 2s put that info in the NCX file. This function
  * extracts TOC information for the manifest from the Nav Document
  */
-export function extractTocFromNavDoc(epub: Epub): ReadiumLink[] | undefined {
+export function extractTocFromNavDoc(epub: Epub): ReadiumLink[] {
   const { navDoc } = epub;
 
   // we only care about the toc nav currently. In the future we can
   // parse the other navs, like PageList
   const tocListItems = selectListItems(navDoc);
 
-  const toc = tocListItems?.map(listItemToLink(epub));
+  const toc = tocListItems?.map(listItemToLink(epub)) ?? [];
   return toc;
 }
 
