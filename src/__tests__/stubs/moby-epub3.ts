@@ -3,7 +3,7 @@ const mobyEpub3Manifest = {
   metadata: {
     '@type': 'http://schema.org/Book',
     title: 'Moby-Dick',
-    identifier: 'code.google.com.epub-samples.moby-dick-basic',
+    identifier: 'pub-id',
     author: {
       name: 'Herman Melville',
       sortAs: 'MELVILLE, HERMAN',
