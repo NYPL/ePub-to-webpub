@@ -18,10 +18,12 @@ export function extractMetadata(epub: Epub): WebpubManifest['metadata'] {
   const language = epub.extractMetadataMember('Language');
   const title = extractTitle(epub);
   const contributors = extractContributors(epub);
+  const identifier = extractIdentifier(epub);
 
   return {
     title,
     language: language.length > 1 ? language : language[0],
+    identifier,
     ...contributors,
   };
 }
@@ -90,4 +92,18 @@ function extractContributors(epub: Epub): Contributors {
   }
 
   return contributors;
+}
+
+/**
+ * An OPF Package Document can contain many identifiers in its metadata field.
+ * However, it also must have a single unique-identifier attribute on the `package`
+ * element. This string must be unique to this package document. We will use this.
+ *
+ * For a spec of OPF <identifier> elements, see:
+ *    http://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.2.10
+ * For a spec of unique-identifier attributes, see:
+ *    http://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.1
+ */
+function extractIdentifier(epub: Epub): string {
+  return epub.opf.UniqueIdentifier;
 }
