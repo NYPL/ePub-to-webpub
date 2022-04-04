@@ -35,7 +35,8 @@ describe('Moby EPUB 2 Exploded', () => {
       mobyEpub2Manifest.metadata,
       'author',
       'title',
-      'language'
+      'language',
+      'identifier'
     );
   });
 
@@ -91,7 +92,8 @@ describe('Moby EPUB 3 Exploded', () => {
       manifest.metadata,
       mobyEpub3Manifest.metadata,
       'title',
-      'language'
+      'language',
+      'identifier'
     );
   });
 

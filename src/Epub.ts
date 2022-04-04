@@ -250,7 +250,7 @@ export default class Epub {
 
   /**
    * As best I can tell, the TOC.ncx file is always referenced with
-   * an <item> in the <manifest> with id === 'ncx
+   * an <item> in the <manifest> with id === 'ncx'
    */
   static getNcxHref(opf: OPF) {
     const manifest = opf.Manifest.find(
