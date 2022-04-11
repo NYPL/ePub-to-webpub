@@ -107,7 +107,6 @@ function extractContributors(epub: Epub): Contributors {
 function extractIdentifier(epub: Epub): string | undefined {
   const identifierTagId = epub.opf.UniqueIdentifier;
   const identifiers = epub.opf.Metadata.Identifier;
-  const identifier = identifiers.find((id) => id.ID === identifierTagId);
-  console.log('identifiers', identifiers, identifierTagId);
+  const identifier = identifiers?.find((id) => id.ID === identifierTagId);
   return identifier?.Data;
 }

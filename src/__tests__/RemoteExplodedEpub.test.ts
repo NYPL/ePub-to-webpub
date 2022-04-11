@@ -87,7 +87,8 @@ describe('Moby EPUB 3 Exploded', () => {
       manifest.metadata,
       mobyEpub3Manifest.metadata,
       'title',
-      'language'
+      'language',
+      'identifier'
     );
   });
 
