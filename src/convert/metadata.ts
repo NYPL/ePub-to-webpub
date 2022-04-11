@@ -104,6 +104,10 @@ function extractContributors(epub: Epub): Contributors {
  * For a spec of unique-identifier attributes, see:
  *    http://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.1
  */
-function extractIdentifier(epub: Epub): string {
-  return epub.opf.UniqueIdentifier;
+function extractIdentifier(epub: Epub): string | undefined {
+  const identifierTagId = epub.opf.UniqueIdentifier;
+  const identifiers = epub.opf.Metadata.Identifier;
+  const identifier = identifiers.find((id) => id.ID === identifierTagId);
+  console.log('identifiers', identifiers, identifierTagId);
+  return identifier?.Data;
 }
