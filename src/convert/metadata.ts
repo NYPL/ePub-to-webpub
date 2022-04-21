@@ -1,5 +1,9 @@
 import { Metafield } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-metafield';
 import Epub from '../Epub';
+import {
+  EPUBExtensionMetadata,
+  Layout,
+} from '../WebpubManifestTypes/EpubExtension';
 import { Contributors } from '../WebpubManifestTypes/Metadata';
 import { WebpubManifest } from '../WebpubManifestTypes/WebpubManifest';
 
@@ -19,11 +23,13 @@ export function extractMetadata(epub: Epub): WebpubManifest['metadata'] {
   const title = extractTitle(epub);
   const contributors = extractContributors(epub);
   const identifier = extractIdentifier(epub);
+  const presentation = extractPresentation(epub);
 
   return {
     title,
     language: language.length > 1 ? language : language[0],
     identifier,
+    presentation,
     ...contributors,
   };
 }
@@ -109,4 +115,30 @@ function extractIdentifier(epub: Epub): string | undefined {
   const identifiers = epub.opf.Metadata.Identifier;
   const identifier = identifiers?.find((id) => id.ID === identifierTagId);
   return identifier?.Data;
+}
+
+/**
+ * The Presentation object contains informations about how should the book renders.
+ * There are couple of options, but we are only interested in the "layout" for now.
+ *
+ * Spec with all other avaiable properties, see:
+ *    https://readium.org/architecture/streamer/parser/metadata#rendition--presentation
+ */
+function extractPresentation(
+  epub: Epub
+): EPUBExtensionMetadata['presentation'] {
+  const presentation: EPUBExtensionMetadata['presentation'] = {};
+  presentation.layout = extractLayoutTypeFromMeta(epub);
+
+  return presentation;
+}
+
+// Default layout should be "reflowable", if rendition:layout === pre-paginated, return "fixed"
+// https://readium.org/architecture/streamer/parser/metadata#layout
+function extractLayoutTypeFromMeta(epub: Epub): Layout {
+  const metaFields = epub.opf.Metadata.Meta;
+  const layoutProperty = metaFields?.find(
+    (field) => field.Property === 'rendition:layout'
+  );
+  return layoutProperty?.Data === 'pre-paginated' ? 'fixed' : 'reflowable';
 }
