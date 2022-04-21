@@ -1,5 +1,6 @@
 import { Metafield } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-metafield';
 import Epub from '../Epub';
+import { ConformsTo, EpubConformsTo } from '../WebpubManifestTypes/ConformsTo';
 import {
   EPUBExtensionMetadata,
   Layout,
@@ -24,12 +25,14 @@ export function extractMetadata(epub: Epub): WebpubManifest['metadata'] {
   const contributors = extractContributors(epub);
   const identifier = extractIdentifier(epub);
   const presentation = extractPresentation(epub);
+  const conformsTo = getConformsTo();
 
   return {
     title,
     language: language.length > 1 ? language : language[0],
     identifier,
     presentation,
+    conformsTo,
     ...contributors,
   };
 }
@@ -141,4 +144,9 @@ function extractLayoutTypeFromMeta(epub: Epub): Layout {
     (field) => field.Property === 'rendition:layout'
   );
   return layoutProperty?.Data === 'pre-paginated' ? 'fixed' : 'reflowable';
+}
+
+// This package will always be creating webpubs that conform to the EPUB extension
+function getConformsTo(): ConformsTo {
+  return EpubConformsTo;
 }
