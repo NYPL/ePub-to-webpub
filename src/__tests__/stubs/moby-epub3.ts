@@ -22,6 +22,9 @@ const mobyEpub3Manifest = {
     role: 'mrk',
     'dcterms:modified': '2012-01-18T12:47:00Z',
     'cc:attributionURL': 'http://code.google.com/p/epub-samples/',
+    presentation: {
+      layout: 'reflowable',
+    },
   },
   readingOrder: [
     {

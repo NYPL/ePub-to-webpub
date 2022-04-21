@@ -80,6 +80,10 @@ describe('Moby EPUB 3 Exploded', () => {
   it('extracts correct metadata', async () => {
     const manifest = await getManifest();
 
+    expect(manifest.metadata.presentation?.layout).toBe(
+      mobyEpub3Manifest.metadata.presentation.layout
+    );
+
     expect(manifest.metadata.author).toBe(
       mobyEpub3Manifest.metadata.author.name
     );
