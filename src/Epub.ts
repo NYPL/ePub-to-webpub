@@ -75,6 +75,7 @@ export default class Epub {
     const container = Epub.parseContainer(
       await fetcher.getFileStr(containerXmlPath)
     );
+
     const relativeOpfPath = Epub.getOpfPath(container);
     const opfPath = fetcher.getOpfPath(relativeOpfPath);
     const opf = await Epub.parseOpf(await fetcher.getFileStr(opfPath));
@@ -86,22 +87,23 @@ export default class Epub {
     const encryptionDoc = Epub.parseEncryptionDoc(encryptionStr);
 
     // ncx file
-    const ncxHref = Epub.getNcxHref(opf);
-    const relativeNcxPath = Epub.resolvePathToOpfPath(
+    const relativeNcxPath = Epub.getNcxHref(opf);
+    const relativeEncryptedNcxPath = Epub.resolvePathToOpfPath(
       fetcher,
       opfPath,
-      ncxHref
+      relativeNcxPath
     );
+
     const ncxPath = relativeNcxPath
       ? fetcher.resolvePath(opfPath, relativeNcxPath)
       : undefined;
 
     let ncx: NCX | undefined = undefined;
-    if (ncxPath && relativeNcxPath) {
+    if (ncxPath && relativeNcxPath && relativeEncryptedNcxPath) {
       // it is encrypted if there is an entry for it in encryption.xml
       const ncxIsEncrypted = !!getEncryptionInfo(
         encryptionDoc,
-        relativeNcxPath,
+        relativeEncryptedNcxPath,
         isAxisNow
       );
       if (ncxIsEncrypted) {
@@ -117,21 +119,21 @@ export default class Epub {
     }
 
     // navdoc file
-    const navDocHref = Epub.getNavDocHref(opf);
-    const relativeNavDocPath = Epub.resolvePathToOpfPath(
+    const relativeNavDocPath = Epub.getNavDocHref(opf);
+    const relativeEncryptedNavDocPath = Epub.resolvePathToOpfPath(
       fetcher,
       opfPath,
-      navDocHref
+      relativeNavDocPath
     );
     const navDocPath = relativeNavDocPath
       ? fetcher.resolvePath(opfPath, relativeNavDocPath)
       : undefined;
 
     let navDoc: Document | undefined = undefined;
-    if (navDocPath && relativeNavDocPath) {
+    if (navDocPath && relativeNavDocPath && relativeEncryptedNavDocPath) {
       const isNavDocEncrypted = !!getEncryptionInfo(
         encryptionDoc,
-        relativeNavDocPath,
+        relativeEncryptedNavDocPath,
         isAxisNow
       );
       if (isNavDocEncrypted) {
@@ -278,7 +280,7 @@ export default class Epub {
 
   /**
    * Convert the relative href relative to the opfPath, that's the OEBPS or ops folder
-   * This is to keep things consistant and make opfPath the main root folder for contents
+   * This is to keep things consistant and make opfPath the main root folder for encrypted contents
    */
   static resolvePathToOpfPath(
     fetcher: Fetcher,
