@@ -11,12 +11,9 @@ export function getEncryptionInfo(
   relativePath: string,
   isAxisNow: boolean | undefined
 ) {
-  const encryptionData = encryptionDoc?.EncryptedData.find((data) => {
-    // Href(relativePath) from the opf.Manifest instance does not give you the full path (Without the subpath OEBPS or OPS),
-    // whereas CipherReference.URI has it (e.g. OPS/toc.ncx), so we we have to just check the final patname.
-    // http://idpf.org/epub/20/spec/OPF_2.0.1_draft.htm#Section2.3
-    return data.CipherData.CipherReference.URI.endsWith(relativePath);
-  });
+  const encryptionData = encryptionDoc?.EncryptedData.find(
+    (data) => data.CipherData.CipherReference.URI === relativePath
+  );
   const algorithm = encryptionData?.EncryptionMethod.Algorithm;
   let encryption: EPUBExtensionLinkProperties['encrypted'] = undefined;
   const scheme = encryptionData?.KeyInfo.RetrievalMethod.Type;

@@ -86,7 +86,12 @@ export default class Epub {
     const encryptionDoc = Epub.parseEncryptionDoc(encryptionStr);
 
     // ncx file
-    const relativeNcxPath = Epub.getNcxHref(opf);
+    const ncxHref = Epub.getNcxHref(opf);
+    const relativeNcxPath = Epub.resolvePathToOpfPath(
+      fetcher,
+      opfPath,
+      ncxHref
+    );
     const ncxPath = relativeNcxPath
       ? fetcher.resolvePath(opfPath, relativeNcxPath)
       : undefined;
@@ -112,7 +117,12 @@ export default class Epub {
     }
 
     // navdoc file
-    const relativeNavDocPath = Epub.getNavDocHref(opf);
+    const navDocHref = Epub.getNavDocHref(opf);
+    const relativeNavDocPath = Epub.resolvePathToOpfPath(
+      fetcher,
+      opfPath,
+      navDocHref
+    );
     const navDocPath = relativeNavDocPath
       ? fetcher.resolvePath(opfPath, relativeNavDocPath)
       : undefined;
@@ -264,6 +274,20 @@ export default class Epub {
    */
   static parseNcx(ncxStr: string | undefined) {
     return ncxStr ? Epub.parseXmlString<NCX>(ncxStr, NCX) : undefined;
+  }
+
+  /**
+   * Convert the relative href relative to the opfPath, that's the OEBPS or ops folder
+   * This is to keep things consistant and make opfPath the main root folder for contents
+   */
+  static resolvePathToOpfPath(
+    fetcher: Fetcher,
+    opfPath: string,
+    href: string | undefined
+  ) {
+    if (!href) return undefined;
+
+    return fetcher.resolveRelativePath(opfPath, href);
   }
 
   static getNavDocHref(opf: OPF): string | undefined {
