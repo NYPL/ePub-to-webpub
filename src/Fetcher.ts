@@ -35,8 +35,10 @@ export default abstract class Fetcher {
   ): Promise<ImageDimensions | undefined>;
 
   /**
-   * For the time being, we assume that encryption.xml is located
-   * as a sibling of container.xml
+   * Get the file located inside the META-INF folder
    */
-  abstract getEncryptionPath(containerXmlPath: string): string;
+  abstract getResourcePathByFileName(
+    containerXmlPath: string,
+    fileName: string
+  ): string;
 }

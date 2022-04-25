@@ -72,7 +72,7 @@ export default class LocalFetcher extends Fetcher {
     return undefined;
   }
 
-  getEncryptionPath(containerXmlPath: string) {
-    return path.resolve(path.dirname(containerXmlPath), 'encryption.xml');
+  getResourcePathByFileName(containerXmlPath: string, fileName: string) {
+    return path.resolve(path.dirname(containerXmlPath), fileName);
   }
 }
