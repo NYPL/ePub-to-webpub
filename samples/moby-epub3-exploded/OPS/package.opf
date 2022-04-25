@@ -15,7 +15,7 @@
     <dc:rights>This work is shared with the public using the Attribution-ShareAlike 3.0 Unported (CC BY-SA 3.0) license.</dc:rights>        
     <link rel="cc:license" href="http://creativecommons.org/licenses/by-sa/3.0/"/>
     <meta property="cc:attributionURL">http://code.google.com/p/epub-samples/</meta>
-    <meta property="rendition:layout">reflowable</meta>
+    <meta property="rendition:layout">pre-paginated</meta>
   </metadata>
   <manifest>
     <item id="font.stix.regular" href="fonts/STIXGeneral.otf"
