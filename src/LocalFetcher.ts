@@ -22,10 +22,17 @@ export default class LocalFetcher extends Fetcher {
     return path.resolve(this.containerXmlPath, '../../', relativeOpfPath);
   }
 
-  resolvePath(from: string, to: string): string {
+  resolvePath(from: string, to: string): string;
+  resolvePath(from: string, to: string | undefined): string | undefined;
+  resolvePath(from: string, to: unknown): unknown {
+    if (typeof to !== 'string') return undefined;
     return path.resolve(from, '../', to);
   }
-  resolveRelativePath(from: string, to: string): string {
+
+  resolveRelativePath(from: string, to: string): string;
+  resolveRelativePath(from: string, to: string | undefined): string | undefined;
+  resolveRelativePath(from: string, to: unknown): unknown {
+    if (typeof to !== 'string') return undefined;
     const fullPath = this.resolvePath(from, to);
     return path.relative(this.folderPath, fullPath);
   }

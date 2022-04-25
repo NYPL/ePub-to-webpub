@@ -49,12 +49,20 @@ export default class RemoteFetcher extends Fetcher {
     return this.resolvePath(this.folderPath, relativeOpfPath);
   }
 
-  resolvePath(from: string, to: string): string {
+  resolvePath(from: string, to: string): string;
+  resolvePath(from: string, to: string | undefined): string | undefined;
+  resolvePath(from: string, to: unknown): unknown {
+    if (typeof to !== 'string') return undefined;
     return new URL(to, from).toString();
   }
-  resolveRelativePath(from: string, to: string): string {
+
+  resolveRelativePath(from: string, to: string): string;
+  resolveRelativePath(from: string, to: string | undefined): string | undefined;
+  resolveRelativePath(from: string, to: unknown): unknown {
+    if (typeof to !== 'string') return undefined;
     return this.resolvePath(from, to).replace(this.folderPath, '');
   }
+
   resolveHref(from: string, to: string, relative: boolean) {
     return relative
       ? this.resolveRelativePath(from, to)
