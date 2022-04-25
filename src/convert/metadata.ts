@@ -31,7 +31,7 @@ export function extractMetadata(epub: Epub): WebpubManifest['metadata'] {
     title,
     language: language.length > 1 ? language : language[0],
     identifier,
-    presentation,
+    ...(presentation && { presentation }),
     conformsTo,
     ...contributors,
   };
@@ -129,21 +129,26 @@ function extractIdentifier(epub: Epub): string | undefined {
  */
 function extractPresentation(
   epub: Epub
-): EPUBExtensionMetadata['presentation'] {
+): EPUBExtensionMetadata['presentation'] | undefined {
   const presentation: EPUBExtensionMetadata['presentation'] = {};
-  presentation.layout = extractLayoutTypeFromMeta(epub);
+
+  const layout = extractLayoutTypeFromMeta(epub);
+
+  if (layout) {
+    presentation.layout = extractLayoutTypeFromMeta(epub);
+  }
 
   return presentation;
 }
 
-// Default layout should be "reflowable", if rendition:layout === pre-paginated, return "fixed"
+// if rendition:layout has the value 'pre-paginated', return "fixed", otherwise return undefined
 // https://readium.org/architecture/streamer/parser/metadata#layout
-function extractLayoutTypeFromMeta(epub: Epub): Layout {
+function extractLayoutTypeFromMeta(epub: Epub): Layout | undefined {
   const metaFields = epub.opf.Metadata.Meta;
   const layoutProperty = metaFields?.find(
     (field) => field.Property === 'rendition:layout'
   );
-  return layoutProperty?.Data === 'pre-paginated' ? 'fixed' : 'reflowable';
+  return layoutProperty?.Data === 'pre-paginated' ? 'fixed' : undefined;
 }
 
 // This package will always be creating webpubs that conform to the EPUB extension
