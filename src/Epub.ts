@@ -88,7 +88,6 @@ export default class Epub {
 
     // ncx file
     const ncxPathRelativeToOpf = Epub.getNcxHref(opf);
-    // encrypted path
     const ncxPathRelativeToRoot = fetcher.resolveRelativePath(
       opfPath,
       ncxPathRelativeToOpf
@@ -118,7 +117,6 @@ export default class Epub {
 
     // navdoc file
     const navDocPathRelativeToOpf = Epub.getNavDocHref(opf);
-    // encrypted path
     const navDocPathRelativeToRoot = fetcher.resolveRelativePath(
       opfPath,
       navDocPathRelativeToOpf
