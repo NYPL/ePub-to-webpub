@@ -30,8 +30,10 @@ export default class LocalFetcher extends Fetcher {
   }
 
   resolveRelativePath(from: string, to: string): string;
-  resolveRelativePath(from: string, to: string | undefined): string | undefined;
-  resolveRelativePath(from: string, to: unknown): unknown {
+  resolveRelativePath(
+    from: string,
+    to: string | undefined
+  ): string | undefined {
     if (typeof to !== 'string') return undefined;
     const fullPath = this.resolvePath(from, to);
     return path.relative(this.folderPath, fullPath);

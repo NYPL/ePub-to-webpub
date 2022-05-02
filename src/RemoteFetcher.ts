@@ -50,15 +50,16 @@ export default class RemoteFetcher extends Fetcher {
   }
 
   resolvePath(from: string, to: string): string;
-  resolvePath(from: string, to: string | undefined): string | undefined;
-  resolvePath(from: string, to: unknown): unknown {
+  resolvePath(from: string, to: string | undefined): string | undefined {
     if (typeof to !== 'string') return undefined;
     return new URL(to, from).toString();
   }
 
   resolveRelativePath(from: string, to: string): string;
-  resolveRelativePath(from: string, to: string | undefined): string | undefined;
-  resolveRelativePath(from: string, to: unknown): unknown {
+  resolveRelativePath(
+    from: string,
+    to: string | undefined
+  ): string | undefined {
     if (typeof to !== 'string') return undefined;
     return this.resolvePath(from, to).replace(this.folderPath, '');
   }
