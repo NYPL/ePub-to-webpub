@@ -72,7 +72,7 @@ export default class LocalFetcher extends Fetcher {
     return undefined;
   }
 
-  getResourcePathByFileName(containerXmlPath: string, fileName: string) {
+  createPathToFileInMetaInf(containerXmlPath: string, fileName: string) {
     return path.resolve(path.dirname(containerXmlPath), fileName);
   }
 }

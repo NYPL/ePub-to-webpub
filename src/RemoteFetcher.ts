@@ -76,7 +76,7 @@ export default class RemoteFetcher extends Fetcher {
     return undefined;
   }
 
-  getResourcePathByFileName(containerXmlPath: string, fileName: string) {
+  createPathToFileInMetaInf(containerXmlPath: string, fileName: string) {
     return new URL(fileName, containerXmlPath).toString();
   }
 }

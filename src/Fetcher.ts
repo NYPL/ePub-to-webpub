@@ -37,7 +37,7 @@ export default abstract class Fetcher {
   /**
    * Get the file located inside the META-INF folder
    */
-  abstract getResourcePathByFileName(
+  abstract createPathToFileInMetaInf(
     containerXmlPath: string,
     fileName: string
   ): string;

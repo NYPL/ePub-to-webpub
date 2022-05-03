@@ -93,7 +93,7 @@ export default class Epub {
     // and the EPUB will be assumed unencrypted.
     // For the time being, we assume that encryption.xml is located
     // as a sibling of container.xml
-    const encryptionPath = fetcher.getResourcePathByFileName(
+    const encryptionPath = fetcher.createPathToFileInMetaInf(
       containerXmlPath,
       'encryption.xml'
     );
@@ -316,7 +316,7 @@ export default class Epub {
     containerXmlPath: string
   ): Promise<string | undefined> {
     // We don't know which file to look for, so we'll try both
-    const ibookPath = fetcher.getResourcePathByFileName(
+    const ibookPath = fetcher.createPathToFileInMetaInf(
       containerXmlPath,
       'com.apple.ibooks.display-options.xml'
     );
@@ -325,7 +325,7 @@ export default class Epub {
       return ibookStr;
     }
 
-    const kuboPath = fetcher.getResourcePathByFileName(
+    const kuboPath = fetcher.createPathToFileInMetaInf(
       containerXmlPath,
       'com.kobobooks.display-options.xml'
     );
