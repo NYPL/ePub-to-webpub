@@ -4,9 +4,6 @@
  * all the features of r2-shared-js, like full metadata and
  * detective cover images from meta fields, so our manifest
  * will not fully match this one.
- *
- * Arbitrary property added for the purpose of the test
- *  - presentation
  */
 
 const mobyEpub2Manifest = {
@@ -32,9 +29,6 @@ const mobyEpub2Manifest = {
       'Whaling ships -- Fiction',
     ],
     cover: 'item1',
-    presentation: {
-      layout: 'fixed',
-    },
   },
   readingOrder: [
     {
