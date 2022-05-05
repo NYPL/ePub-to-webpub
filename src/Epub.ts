@@ -1,6 +1,7 @@
 import { Container } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/container';
 import { OPF } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf';
 import { NCX } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/ncx';
+import { DisplayOptions } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/display-options';
 import { Encryption } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/encryption';
 import { DCMetadata } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-dc-metadata';
 import { Metafield } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/opf-metafield';
@@ -49,6 +50,8 @@ export default class Epub {
     public readonly ncx: NCX | undefined,
     public readonly navDocPath: string | undefined,
     public readonly navDoc: Document | undefined,
+    // the displayOptionDoc file denotes the book layout for epub 2.0
+    public readonly displayOptionDoc: DisplayOptions | undefined,
     // the encryption file tells you which resources are encrypted
     public readonly encryptionDoc: Encryption | undefined,
     // pass a decryptor to have all files except container.xml and opf run through it
@@ -80,9 +83,21 @@ export default class Epub {
     const opfPath = fetcher.getOpfPath(relativeOpfPath);
     const opf = await Epub.parseOpf(await fetcher.getFileStr(opfPath));
 
+    // attempt to get the display-option file string
+    const displayOptionStr = await Epub.getDisplayOptionStr(
+      fetcher,
+      containerXmlPath
+    );
+    const displayOptionDoc = Epub.parseDisplayOptionDoc(displayOptionStr);
+
     // if there is no encryption path, the encryptionDoc will be undefined
     // and the EPUB will be assumed unencrypted.
-    const encryptionPath = fetcher.getEncryptionPath(containerXmlPath);
+    // For the time being, we assume that encryption.xml is located
+    // as a sibling of container.xml
+    const encryptionPath = fetcher.createPathToFileInMetaInf(
+      containerXmlPath,
+      'encryption.xml'
+    );
     const encryptionStr = await fetcher.getOptionalFileStr(encryptionPath);
     const encryptionDoc = Epub.parseEncryptionDoc(encryptionStr);
 
@@ -153,6 +168,7 @@ export default class Epub {
       ncx,
       navDocPath,
       navDoc,
+      displayOptionDoc,
       encryptionDoc,
       decryptor,
       isAxisNow
@@ -287,6 +303,44 @@ export default class Epub {
     return encryptionStr
       ? Epub.parseXmlString<Encryption>(encryptionStr, Encryption)
       : undefined;
+  }
+
+  static parseDisplayOptionDoc(displayOptionStr: string | undefined) {
+    return displayOptionStr
+      ? Epub.parseXmlString<DisplayOptions>(displayOptionStr, DisplayOptions)
+      : undefined;
+  }
+
+  /**
+   * Get the display option str for the book layout, if it exists.
+   *
+   * There could be two type of files according to the spec:
+   *    https://readium.org/architecture/streamer/parser/metadata.html#epub-2x-10
+   */
+  static async getDisplayOptionStr(
+    fetcher: Fetcher,
+    containerXmlPath: string
+  ): Promise<string | undefined> {
+    // We don't know which file to look for, so we'll try both
+    const ibookPath = fetcher.createPathToFileInMetaInf(
+      containerXmlPath,
+      'com.apple.ibooks.display-options.xml'
+    );
+    const ibookStr = await fetcher.getOptionalFileStr(ibookPath);
+    if (ibookStr) {
+      return ibookStr;
+    }
+
+    const kuboPath = fetcher.createPathToFileInMetaInf(
+      containerXmlPath,
+      'com.kobobooks.display-options.xml'
+    );
+    const kuboStr = await fetcher.getOptionalFileStr(kuboPath);
+    if (kuboStr) {
+      return kuboStr;
+    }
+
+    return undefined;
   }
 
   /**

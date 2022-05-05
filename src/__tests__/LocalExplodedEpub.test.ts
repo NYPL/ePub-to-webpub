@@ -3,6 +3,8 @@ import Epub from '../Epub';
 import LocalFetcher from '../LocalFetcher';
 import mobyEpub2Manifest from './stubs/moby-epub2';
 import mobyEpub3Manifest from './stubs/moby-epub3';
+import mobyEpub3FXLManifest from './stubs/moby-epub3-fxl';
+import mobyEpub2FXLManifest from './stubs/moby-epub2-fxl';
 import { expectSelectively, expectSelectivelyArr } from './utils';
 
 const epub2Container = path.resolve(
@@ -29,6 +31,8 @@ describe('Moby EPUB 2 Exploded', () => {
 
   it('extracts correct metadata', async () => {
     const manifest = await getManifest();
+
+    expect(manifest.metadata.presentation?.layout).toBe(undefined);
 
     expectSelectively(
       manifest.metadata,
@@ -88,6 +92,9 @@ describe('Moby EPUB 3 Exploded', () => {
     expect(manifest.metadata.author).toBe(
       mobyEpub3Manifest.metadata.author.name
     );
+
+    expect(manifest.metadata.presentation?.layout).toBe(undefined);
+
     expectSelectively(
       manifest.metadata,
       mobyEpub3Manifest.metadata,
@@ -122,5 +129,70 @@ describe('Moby EPUB 3 Exploded', () => {
   it('extracts toc', async () => {
     const manifest = await getManifest();
     expect(manifest.toc).toEqual(mobyEpub3Manifest.toc);
+  });
+});
+
+const epub2FXLContainer = path.resolve(
+  __dirname,
+  '../../samples/moby-epub2-fxl/META-INF/container.xml'
+);
+
+const epub3FXLContainer = path.resolve(
+  __dirname,
+  '../../samples/moby-epub3-fxl/META-INF/container.xml'
+);
+
+describe('Moby EPUB 2 FXL layout', () => {
+  async function getManifest() {
+    const fetcher = new LocalFetcher(epub2FXLContainer);
+    const epub = await Epub.build(epub2FXLContainer, fetcher);
+    const manifest = await epub.webpubManifest;
+    return manifest;
+  }
+
+  it('extracts correct metadata', async () => {
+    const manifest = await getManifest();
+
+    expect(manifest.metadata.presentation?.layout).toBe(
+      mobyEpub2FXLManifest.metadata.presentation.layout
+    );
+
+    expectSelectively(
+      manifest.metadata,
+      mobyEpub2FXLManifest.metadata,
+      'author',
+      'title',
+      'language',
+      'identifier'
+    );
+  });
+});
+
+describe('Moby EPUB 3 FXL layout', () => {
+  async function getManifest() {
+    const fetcher = new LocalFetcher(epub3FXLContainer);
+    const epub = await Epub.build(epub3FXLContainer, fetcher);
+    const manifest = await epub.webpubManifest;
+    return manifest;
+  }
+
+  it('extracts correct metadata', async () => {
+    const manifest = await getManifest();
+
+    expect(manifest.metadata.author).toBe(
+      mobyEpub3Manifest.metadata.author.name
+    );
+
+    expect(manifest.metadata.presentation?.layout).toBe(
+      mobyEpub3FXLManifest.metadata.presentation.layout
+    );
+
+    expectSelectively(
+      manifest.metadata,
+      mobyEpub3FXLManifest.metadata,
+      'title',
+      'language',
+      'identifier'
+    );
   });
 });

@@ -1,3 +1,5 @@
+export type Layout = 'fixed' | 'reflowable';
+
 export interface EPUBExtensionLinkProperties {
   /**
    * Identifies content contained in the linked resource, that cannot be strictly identified using a media type.
@@ -41,7 +43,7 @@ export interface EPUBExtensionMetadata {
     /**
      * Hints how the layout of the resource should be presented
      */
-    layout?: 'fixed' | 'reflowable';
+    layout?: Layout;
     [k: string]: unknown;
   };
   [k: string]: unknown;

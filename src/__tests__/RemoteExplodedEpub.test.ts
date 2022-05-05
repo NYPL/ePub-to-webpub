@@ -4,6 +4,8 @@ import { baseUrl } from './constants';
 import mobyEpub2Manifest from './stubs/moby-epub2';
 import mobyEpub2SubdirNcx from './stubs/moby-epub2-subdir-ncx';
 import mobyEpub3Manifest from './stubs/moby-epub3';
+import mobyEpub2FXLManifest from './stubs/moby-epub2-fxl';
+import mobyEpub3FXLManifest from './stubs/moby-epub3-fxl';
 import mobyAbsoluteHrefs from './stubs/moby-epub3-absolute-hrefs';
 import epub3Subdir from './stubs/moby-epub3-subdir-navdoc';
 import { expectSelectively, expectSelectivelyArr } from './utils';
@@ -26,6 +28,8 @@ describe('Moby EPUB 2 Exploded', () => {
 
   it('extracts correct metadata', async () => {
     const manifest = await getManifest();
+
+    expect(manifest.metadata.presentation?.layout).toBe(undefined);
 
     expectSelectively(
       manifest.metadata,
@@ -83,6 +87,9 @@ describe('Moby EPUB 3 Exploded', () => {
     expect(manifest.metadata.author).toBe(
       mobyEpub3Manifest.metadata.author.name
     );
+
+    expect(manifest.metadata.presentation?.layout).toBe(undefined);
+
     expectSelectively(
       manifest.metadata,
       mobyEpub3Manifest.metadata,
@@ -247,5 +254,72 @@ describe('With NCX in a subdirectory', () => {
   it('extracts toc', async () => {
     const manifest = await getManifest();
     expect(manifest.toc).toEqual(mobyEpub2SubdirNcx.toc);
+  });
+});
+
+const MobyEpub2FXLHref = `${baseUrl}/samples/moby-epub2-fxl/META-INF/container.xml`;
+const MobyEpub3FXLHref = `${baseUrl}/samples/moby-epub3-fxl/META-INF/container.xml`;
+
+describe('Moby EPUB 2 FXL layout', () => {
+  async function getManifest() {
+    const fetcher = new RemoteFetcher(MobyEpub2FXLHref);
+    const epub = await Epub.build(MobyEpub2FXLHref, fetcher);
+    const manifest = await epub.webpubManifest;
+    return manifest;
+  }
+
+  it('context', async () => {
+    const manifest = await getManifest();
+    expect(manifest['@context']).toBe(mobyEpub2Manifest['@context']);
+  });
+
+  it('extracts correct metadata', async () => {
+    const manifest = await getManifest();
+
+    expect(manifest.metadata.presentation?.layout).toBe(
+      mobyEpub2FXLManifest.metadata.presentation.layout
+    );
+
+    expectSelectively(
+      manifest.metadata,
+      mobyEpub2FXLManifest.metadata,
+      'author',
+      'title',
+      'language'
+    );
+  });
+});
+
+describe('Moby EPUB 3 FXL layout', () => {
+  async function getManifest() {
+    const fetcher = new RemoteFetcher(MobyEpub3FXLHref);
+    const epub = await Epub.build(MobyEpub3FXLHref, fetcher);
+    const manifest = await epub.webpubManifest;
+    return manifest;
+  }
+
+  it('context', async () => {
+    const manifest = await getManifest();
+    expect(manifest['@context']).toBe(mobyEpub3Manifest['@context']);
+  });
+
+  it('extracts correct metadata', async () => {
+    const manifest = await getManifest();
+
+    expect(manifest.metadata.author).toBe(
+      mobyEpub3FXLManifest.metadata.author.name
+    );
+
+    expect(manifest.metadata.presentation?.layout).toBe(
+      mobyEpub3FXLManifest.metadata.presentation.layout
+    );
+
+    expectSelectively(
+      manifest.metadata,
+      mobyEpub3FXLManifest.metadata,
+      'title',
+      'language',
+      'identifier'
+    );
   });
 });
