@@ -4,15 +4,16 @@ import { EPUBExtensionLinkProperties } from '../WebpubManifestTypes/EpubExtensio
 
 /**
  * Adds encryption information to the resource link if there is any detected for this
+ * parameter 'path' needs to be relative to the root of the publication
  * link in the epub.encryptionDoc
  */
 export function getEncryptionInfo(
   encryptionDoc: Encryption | undefined,
-  relativePath: string,
+  path: string,
   isAxisNow: boolean | undefined
 ) {
   const encryptionData = encryptionDoc?.EncryptedData.find(
-    (data) => data.CipherData.CipherReference.URI === relativePath
+    (data) => data.CipherData.CipherReference.URI === path
   );
   const algorithm = encryptionData?.EncryptionMethod.Algorithm;
   let encryption: EPUBExtensionLinkProperties['encrypted'] = undefined;

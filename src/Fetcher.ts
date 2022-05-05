@@ -18,8 +18,16 @@ export default abstract class Fetcher {
   }
 
   abstract resolvePath(from: string, to: string): string;
+  abstract resolvePath(
+    from: string,
+    to: string | undefined
+  ): string | undefined;
   // returns a path relative to the EPUB root
   abstract resolveRelativePath(from: string, to: string): string;
+  abstract resolveRelativePath(
+    from: string,
+    to: string | undefined
+  ): string | undefined;
   // resolves either a relative or absolute href depending on the flag
   abstract resolveHref(from: string, to: string, relative: boolean): string;
 

@@ -75,6 +75,7 @@ export default class Epub {
     const container = Epub.parseContainer(
       await fetcher.getFileStr(containerXmlPath)
     );
+
     const relativeOpfPath = Epub.getOpfPath(container);
     const opfPath = fetcher.getOpfPath(relativeOpfPath);
     const opf = await Epub.parseOpf(await fetcher.getFileStr(opfPath));
@@ -86,17 +87,20 @@ export default class Epub {
     const encryptionDoc = Epub.parseEncryptionDoc(encryptionStr);
 
     // ncx file
-    const relativeNcxPath = Epub.getNcxHref(opf);
-    const ncxPath = relativeNcxPath
-      ? fetcher.resolvePath(opfPath, relativeNcxPath)
-      : undefined;
+    const ncxPathRelativeToOpf = Epub.getNcxHref(opf);
+    const ncxPathRelativeToRoot = fetcher.resolveRelativePath(
+      opfPath,
+      ncxPathRelativeToOpf
+    );
+
+    const ncxPath = fetcher.resolvePath(opfPath, ncxPathRelativeToOpf);
 
     let ncx: NCX | undefined = undefined;
-    if (ncxPath && relativeNcxPath) {
+    if (ncxPath && ncxPathRelativeToRoot) {
       // it is encrypted if there is an entry for it in encryption.xml
       const ncxIsEncrypted = !!getEncryptionInfo(
         encryptionDoc,
-        relativeNcxPath,
+        ncxPathRelativeToRoot,
         isAxisNow
       );
       if (ncxIsEncrypted) {
@@ -112,16 +116,18 @@ export default class Epub {
     }
 
     // navdoc file
-    const relativeNavDocPath = Epub.getNavDocHref(opf);
-    const navDocPath = relativeNavDocPath
-      ? fetcher.resolvePath(opfPath, relativeNavDocPath)
-      : undefined;
+    const navDocPathRelativeToOpf = Epub.getNavDocHref(opf);
+    const navDocPathRelativeToRoot = fetcher.resolveRelativePath(
+      opfPath,
+      navDocPathRelativeToOpf
+    );
+    const navDocPath = fetcher.resolvePath(opfPath, navDocPathRelativeToOpf);
 
     let navDoc: Document | undefined = undefined;
-    if (navDocPath && relativeNavDocPath) {
+    if (navDocPath && navDocPathRelativeToRoot) {
       const isNavDocEncrypted = !!getEncryptionInfo(
         encryptionDoc,
-        relativeNavDocPath,
+        navDocPathRelativeToRoot,
         isAxisNow
       );
       if (isNavDocEncrypted) {
