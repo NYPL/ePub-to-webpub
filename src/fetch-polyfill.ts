@@ -3,6 +3,7 @@
  * since the native fetch was not working in Jest.
  */
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import fetch, { Blob, Headers, Request, Response } from 'node-fetch';
 
 (globalThis as any).fetch = fetch;
