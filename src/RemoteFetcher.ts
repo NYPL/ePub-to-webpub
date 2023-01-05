@@ -1,5 +1,4 @@
 import Epub from './Epub';
-import fetch from 'node-fetch';
 import sizeOf from 'image-size';
 import Decryptor from '@nypl-simplified-packages/axisnow-access-control-web';
 import Fetcher from './Fetcher';
@@ -45,10 +44,16 @@ export default class RemoteFetcher extends Fetcher {
     return undefined;
   }
 
+  /**
+   * Returns the OPF path relative to the root of the EPUB.
+   */
   getOpfPath(relativeOpfPath: string): string {
     return this.resolvePath(this.folderPath, relativeOpfPath);
   }
 
+  /**
+   * Resolves a path from an absolute URL to a relative URL.
+   */
   resolvePath(from: string, to: string): string;
   resolvePath(from: string, to: string | undefined): string | undefined {
     if (typeof to !== 'string') return undefined;
@@ -76,7 +81,7 @@ export default class RemoteFetcher extends Fetcher {
     if (!response.ok) {
       throw new Error(`Could not fetch image at: ${url.toString()}`);
     }
-    const buffer = await response.buffer();
+    const buffer = await response.arrayBuffer();
     const decrypted = await Epub.decryptAb(buffer, this.decryptor);
     const { width, height } = sizeOf(Buffer.from(decrypted)) ?? {};
     if (typeof width === 'number' && typeof height === 'number') {

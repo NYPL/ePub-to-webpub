@@ -1,6 +1,8 @@
 import { server } from './mocks/server';
 // Establish API mocking before all tests.
 
+import './src/fetch-polyfill.ts';
+
 beforeAll(() => {
   server.listen({
     onUnhandledRequest: 'warn',
