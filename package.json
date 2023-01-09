@@ -12,7 +12,7 @@
     "src"
   ],
   "engines": {
-    "node": ">=14.17"
+    "node": ">=18"
   },
   "publishConfig": {
     "access": "public"
@@ -54,7 +54,9 @@
       "src/lambda.ts",
       "src/container.ts",
       "src/cli/download-webpub.ts",
-      "src/cli/decrypt-webpub.ts"
+      "src/cli/decrypt-webpub.ts",
+      "src/RemoteFetcherBrowser.ts",
+      "src/Epub.ts"
     ]
   },
   "peerDependencies": {
@@ -106,7 +108,7 @@
     "react-dom": "^17.0.2",
     "size-limit": "^4.11.0",
     "tslib": "^2.2.0",
-    "tsup": "^5.1.0",
+    "tsup": "^6.5.0",
     "typescript": "^4.2.4"
   },
   "dependencies": {

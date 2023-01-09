@@ -11,7 +11,7 @@ import { EpubVersion } from './types';
 import { Rootfile } from 'r2-shared-js/dist/es8-es2017/src/parser/epub/container-rootfile';
 import { WebpubManifest } from './WebpubManifestTypes/WebpubManifest';
 import { epubToManifest } from './convert';
-import Decryptor from '@nypl-simplified-packages/axisnow-access-control-web';
+import type Decryptor from '@nypl-simplified-packages/axisnow-access-control-web';
 import Fetcher from './Fetcher';
 import { getEncryptionInfo } from './convert/encryption';
 
