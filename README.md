@@ -1,3 +1,7 @@
+# THIS REPOSITORY HAS BEEN RELOCATED
+
+This repo has been moved into the [NYPL/ereading-clients](https://github.com/NYPL/ereading-clients/) monorepo under packages/epub-to-webpub.
+
 # EPUB to Webpub
 
 This repository is a converter between EPUBS and Webpubs. It can either be deployed as an endpoint service, consumed as a package within another Node service, or used as a CLI. 
